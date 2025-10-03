@@ -1,18 +1,21 @@
-import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import { format } from 'date-fns';
+import DateTimePicker, {
+  DateTimePickerAndroid,
+} from "@react-native-community/datetimepicker";
+import { format } from "date-fns";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CategoryPicker } from "../src/components/CategoryPicker";
 import { addExpense } from "../src/db/expenseRepo";
 import { Category, PayerId } from "../src/db/sqlite";
@@ -23,6 +26,7 @@ import { parseAmountInput } from "../src/utils/money";
 export default function AddExpense() {
   const router = useRouter();
   const { refreshData } = useMonthStore();
+  const insets = useSafeAreaInsets();
 
   const [amount, setAmount] = useState("");
   const [amountError, setAmountError] = useState("");
@@ -34,26 +38,26 @@ export default function AddExpense() {
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
+    if (Platform.OS === "android") {
       // On Android, showDatePicker controls whether the modal shows
       setShowDatePicker(false);
       // Only update date if user selected a date (not dismissed)
-      if (event.type === 'set' && selectedDate) {
-        setDate(format(selectedDate, 'yyyy-MM-dd'));
+      if (event.type === "set" && selectedDate) {
+        setDate(format(selectedDate, "yyyy-MM-dd"));
       }
     } else {
       // On iOS, always update if selectedDate is provided
       if (selectedDate) {
-        setDate(format(selectedDate, 'yyyy-MM-dd'));
+        setDate(format(selectedDate, "yyyy-MM-dd"));
       }
     }
   };
 
   const openDatePicker = () => {
-    if (Platform.OS === 'android') {
+    if (Platform.OS === "android") {
       DateTimePickerAndroid.open({
         value: new Date(date),
-        mode: 'date',
+        mode: "date",
         onChange: handleDateChange,
       });
     } else {
@@ -63,24 +67,24 @@ export default function AddExpense() {
 
   const sanitizeAmountInput = (text: string): string => {
     // Allow only digits and one decimal separator (, or .)
-    const cleaned = text.replace(/[^\d,.]/g, '');
-    
+    const cleaned = text.replace(/[^\d,.]/g, "");
+
     // Normalize comma to dot
-    const normalized = cleaned.replace(',', '.');
-    
+    const normalized = cleaned.replace(",", ".");
+
     // Ensure only one decimal separator
-    const parts = normalized.split('.');
+    const parts = normalized.split(".");
     if (parts.length > 2) {
-      return parts[0] + '.' + parts.slice(1).join('');
+      return parts[0] + "." + parts.slice(1).join("");
     }
-    
+
     return normalized;
   };
 
   const handleAmountChange = (text: string) => {
     const sanitized = sanitizeAmountInput(text);
     setAmount(sanitized);
-    
+
     // Clear error when user starts typing
     if (amountError) {
       setAmountError("");
@@ -144,18 +148,22 @@ export default function AddExpense() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
       >
         {/* Amount */}
         <View style={styles.section}>
           <Text style={styles.label}>Amount (SEK)</Text>
           <TextInput
-            style={[styles.textInput, styles.amountInput, amountError && styles.errorInput]}
+            style={[
+              styles.textInput,
+              styles.amountInput,
+              amountError && styles.errorInput,
+            ]}
             value={amount}
             onChangeText={handleAmountChange}
             placeholder="0.00"
@@ -212,14 +220,11 @@ export default function AddExpense() {
         {/* Date */}
         <View style={styles.section}>
           <Text style={styles.label}>Date</Text>
-          <TouchableOpacity
-            style={styles.dateButton}
-            onPress={openDatePicker}
-          >
+          <TouchableOpacity style={styles.dateButton} onPress={openDatePicker}>
             <Text style={styles.dateButtonText}>{date}</Text>
           </TouchableOpacity>
-          
-          {Platform.OS === 'ios' && showDatePicker && (
+
+          {Platform.OS === "ios" && showDatePicker && (
             <View style={styles.datePickerContainer}>
               <DateTimePicker
                 value={new Date(date)}
@@ -257,7 +262,14 @@ export default function AddExpense() {
       </ScrollView>
 
       {/* Buttons */}
-      <View style={styles.buttons}>
+      <View
+        style={[
+          styles.buttons,
+          {
+            paddingBottom: insets.bottom + 12,
+          },
+        ]}
+      >
         <TouchableOpacity
           style={[styles.button, styles.cancelButton]}
           onPress={handleCancel}
@@ -281,16 +293,9 @@ export default function AddExpense() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-  },
   scrollView: {
     flex: 1,
-  },
-  content: {
-    padding: 16,
-    paddingBottom: 100,
+    backgroundColor: "#F5F5F5",
   },
   section: {
     marginBottom: 24,
@@ -314,13 +319,13 @@ const styles = StyleSheet.create({
     height: 80,
   },
   amountInput: {
-    textAlign: 'right',
+    textAlign: "right",
   },
   errorInput: {
-    borderColor: '#FF3B30',
+    borderColor: "#FF3B30",
   },
   errorText: {
-    color: '#FF3B30',
+    color: "#FF3B30",
     fontSize: 14,
     marginTop: 4,
     marginLeft: 4,
@@ -359,10 +364,9 @@ const styles = StyleSheet.create({
   },
   buttons: {
     flexDirection: "row",
-    padding: 16,
-    paddingTop: 8,
+    padding: 12,
     backgroundColor: "white",
-    borderTopWidth: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: "#E0E0E0",
     gap: 12,
   },
