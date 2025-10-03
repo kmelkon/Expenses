@@ -152,6 +152,7 @@ export function TotalsTables({ summary }: TotalsTablesProps) {
 const styles = StyleSheet.create({
   container: {
     gap: 20,
+    marginBottom: 20,
   },
   section: {
     backgroundColor: "white",

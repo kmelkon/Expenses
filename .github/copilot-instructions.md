@@ -2,6 +2,10 @@
 
 This is a minimal expense tracking app for two hardcoded users (Karam/"you" and Kazi/"partner") built with Expo/React Native.
 
+## Guidelines
+
+ALWAYS create TODOs before starting a new task. Follow the TODOs to completion.
+
 ## Architecture Overview
 
 - **Data Layer**: SQLite with raw SQL (no ORM) - money stored as integer cents, dates as 'YYYY-MM-DD' strings
