@@ -9,21 +9,28 @@ export function formatSEK(cents: number): string {
 }
 
 /**
- * Convert formatted amount input to cents
- * @param input - String like "123.45" or "123"
- * @returns Amount in cents (e.g., 12345)
- * @throws Error if input is invalid
+ * Format cents to SEK currency string using Swedish locale
+ * @param cents - Amount in cents (e.g., 1234 for 12.34 SEK)
+ * @returns Formatted currency string (e.g., "12,34")
  */
-export function parseAmountInput(input: string): number {
-  const cleaned = input.trim().replace(",", ".");
-  const amount = parseFloat(cleaned);
+export const formatAmount = (cents: number): string =>
+  new Intl.NumberFormat('sv-SE', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(cents / 100);
 
-  if (isNaN(amount) || amount < 0) {
-    throw new Error("Invalid amount");
-  }
-
-  return Math.round(amount * 100);
-}
+/**
+ * Parse amount input string to cents
+ * @param s - Input string like "12.34" or "12,34"
+ * @returns Amount in cents or null if invalid
+ */
+export const parseAmountInput = (s: string): number | null => {
+  const cleaned = s.replace(',', '.').replace(/[^\d.]/g, '');
+  const normalized = cleaned.replace(/(\..*?)\./g, '$1'); // one dot
+  const num = Number(normalized);
+  if (Number.isNaN(num)) return null;
+  return Math.round(num * 100);
+};
 
 /**
  * Convert cents to display amount for input field

@@ -1,15 +1,17 @@
+import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+import { format } from 'date-fns';
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { CategoryPicker } from "../src/components/CategoryPicker";
 import { addExpense } from "../src/db/expenseRepo";
@@ -23,19 +25,80 @@ export default function AddExpense() {
   const { refreshData } = useMonthStore();
 
   const [amount, setAmount] = useState("");
+  const [amountError, setAmountError] = useState("");
   const [paidBy, setPaidBy] = useState<PayerId>("you");
   const [date, setDate] = useState(getTodayYYYYMMDD());
   const [category, setCategory] = useState<Category | null>(null);
   const [note, setNote] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      // On Android, showDatePicker controls whether the modal shows
+      setShowDatePicker(false);
+      // Only update date if user selected a date (not dismissed)
+      if (event.type === 'set' && selectedDate) {
+        setDate(format(selectedDate, 'yyyy-MM-dd'));
+      }
+    } else {
+      // On iOS, always update if selectedDate is provided
+      if (selectedDate) {
+        setDate(format(selectedDate, 'yyyy-MM-dd'));
+      }
+    }
+  };
+
+  const openDatePicker = () => {
+    if (Platform.OS === 'android') {
+      DateTimePickerAndroid.open({
+        value: new Date(date),
+        mode: 'date',
+        onChange: handleDateChange,
+      });
+    } else {
+      setShowDatePicker(!showDatePicker);
+    }
+  };
+
+  const sanitizeAmountInput = (text: string): string => {
+    // Allow only digits and one decimal separator (, or .)
+    const cleaned = text.replace(/[^\d,.]/g, '');
+    
+    // Normalize comma to dot
+    const normalized = cleaned.replace(',', '.');
+    
+    // Ensure only one decimal separator
+    const parts = normalized.split('.');
+    if (parts.length > 2) {
+      return parts[0] + '.' + parts.slice(1).join('');
+    }
+    
+    return normalized;
+  };
+
+  const handleAmountChange = (text: string) => {
+    const sanitized = sanitizeAmountInput(text);
+    setAmount(sanitized);
+    
+    // Clear error when user starts typing
+    if (amountError) {
+      setAmountError("");
+    }
+  };
 
   const handleSave = async () => {
-    // Validation
-    if (!amount.trim()) {
-      Alert.alert("Error", "Please enter an amount");
+    // Clear any existing amount error
+    setAmountError("");
+
+    // Validate amount
+    const amountCents = parseAmountInput(amount);
+    if (!amountCents || amountCents <= 0) {
+      setAmountError("Please enter a valid amount greater than 0");
       return;
     }
 
+    // Validate other fields
     if (!category) {
       Alert.alert("Error", "Please select a category");
       return;
@@ -43,18 +106,6 @@ export default function AddExpense() {
 
     if (!date.trim()) {
       Alert.alert("Error", "Please enter a date");
-      return;
-    }
-
-    let amountCents: number;
-    try {
-      amountCents = parseAmountInput(amount);
-      if (amountCents <= 0) {
-        Alert.alert("Error", "Amount must be greater than 0");
-        return;
-      }
-    } catch {
-      Alert.alert("Error", "Please enter a valid amount");
       return;
     }
 
@@ -104,13 +155,17 @@ export default function AddExpense() {
         <View style={styles.section}>
           <Text style={styles.label}>Amount (SEK)</Text>
           <TextInput
-            style={styles.textInput}
+            style={[styles.textInput, styles.amountInput, amountError && styles.errorInput]}
             value={amount}
-            onChangeText={setAmount}
+            onChangeText={handleAmountChange}
             placeholder="0.00"
             keyboardType="decimal-pad"
+            inputMode="decimal"
+            textAlign="right"
             autoFocus
+            inputAccessoryViewID="amount-input-accessory"
           />
+          {amountError && <Text style={styles.errorText}>{amountError}</Text>}
         </View>
 
         {/* Paid By */}
@@ -157,13 +212,23 @@ export default function AddExpense() {
         {/* Date */}
         <View style={styles.section}>
           <Text style={styles.label}>Date</Text>
-          <TextInput
-            style={styles.textInput}
-            value={date}
-            onChangeText={setDate}
-            placeholder="YYYY-MM-DD"
-            keyboardType="numbers-and-punctuation"
-          />
+          <TouchableOpacity
+            style={styles.dateButton}
+            onPress={openDatePicker}
+          >
+            <Text style={styles.dateButtonText}>{date}</Text>
+          </TouchableOpacity>
+          
+          {Platform.OS === 'ios' && showDatePicker && (
+            <View style={styles.datePickerContainer}>
+              <DateTimePicker
+                value={new Date(date)}
+                mode="date"
+                display="inline"
+                onChange={handleDateChange}
+              />
+            </View>
+          )}
         </View>
 
         {/* Category */}
@@ -248,6 +313,18 @@ const styles = StyleSheet.create({
   noteInput: {
     height: 80,
   },
+  amountInput: {
+    textAlign: 'right',
+  },
+  errorInput: {
+    borderColor: '#FF3B30',
+  },
+  errorText: {
+    color: '#FF3B30',
+    fontSize: 14,
+    marginTop: 4,
+    marginLeft: 4,
+  },
   segmentedControl: {
     flexDirection: "row",
     borderRadius: 8,
@@ -310,5 +387,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "white",
+  },
+  dateButton: {
+    borderWidth: 1,
+    borderColor: "#DDD",
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: "white",
+  },
+  dateButtonText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  datePickerContainer: {
+    marginTop: 8,
+    backgroundColor: "white",
+    borderRadius: 8,
+    overflow: "hidden",
   },
 });
