@@ -19,7 +19,7 @@ import {
   getNextMonth,
   getPreviousMonth,
 } from "../src/utils/date";
-import { formatSEK } from "../src/utils/money";
+import { formatAmount } from "../src/utils/money";
 
 export default function Index() {
   const router = useRouter();
@@ -60,7 +60,9 @@ export default function Index() {
           <Text style={styles.expenseCategory}>{item.category}</Text>
           {item.note && <Text style={styles.expenseNote}>{item.note}</Text>}
         </View>
-        <Text style={styles.expenseAmount}>{formatSEK(item.amount_cents)}</Text>
+        <Text style={styles.expenseAmount}>
+          {formatAmount(item.amount_cents)}
+        </Text>
       </View>
     </View>
   );
@@ -217,6 +219,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#007AFF",
+    textAlign: "right",
+    flexWrap: "nowrap",
   },
   emptyState: {
     alignItems: "center",

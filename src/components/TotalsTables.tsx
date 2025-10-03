@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { MonthSummary } from "../db/expenseRepo";
 import { CATEGORIES } from "../db/sqlite";
-import { formatSEK } from "../utils/money";
+import { formatAmount } from "../utils/money";
 import { PayerChip } from "./PayerChip";
 
 interface TotalsTablesProps {
@@ -31,20 +31,20 @@ export function TotalsTables({ summary }: TotalsTablesProps) {
           <View style={styles.summaryItem}>
             <PayerChip payerId="you" size="small" />
             <Text style={styles.summaryAmount}>
-              {formatSEK(summary.youTotal)}
+              {formatAmount(summary.youTotal)}
             </Text>
           </View>
           <View style={styles.summaryItem}>
             <PayerChip payerId="partner" size="small" />
             <Text style={styles.summaryAmount}>
-              {formatSEK(summary.partnerTotal)}
+              {formatAmount(summary.partnerTotal)}
             </Text>
           </View>
         </View>
         <View style={styles.grandTotalRow}>
-          <Text style={styles.grandTotalLabel}>Total</Text>
+          <Text style={styles.grandTotalLabel}>Total (SEK)</Text>
           <Text style={styles.grandTotalAmount}>
-            {formatSEK(summary.grandTotal)}
+            {formatAmount(summary.grandTotal)}
           </Text>
         </View>
       </View>
@@ -85,10 +85,10 @@ export function TotalsTables({ summary }: TotalsTablesProps) {
                     {category}
                   </Text>
                   <Text style={[styles.tableCellText, styles.amountColumn]}>
-                    {totals.you > 0 ? formatSEK(totals.you) : "-"}
+                    {totals.you > 0 ? formatAmount(totals.you) : "-"}
                   </Text>
                   <Text style={[styles.tableCellText, styles.amountColumn]}>
-                    {totals.partner > 0 ? formatSEK(totals.partner) : "-"}
+                    {totals.partner > 0 ? formatAmount(totals.partner) : "-"}
                   </Text>
                   <Text
                     style={[
@@ -97,7 +97,7 @@ export function TotalsTables({ summary }: TotalsTablesProps) {
                       styles.boldText,
                     ]}
                   >
-                    {formatSEK(rowTotal)}
+                    {formatAmount(rowTotal)}
                   </Text>
                 </View>
               );
@@ -121,7 +121,7 @@ export function TotalsTables({ summary }: TotalsTablesProps) {
                   styles.boldText,
                 ]}
               >
-                {formatSEK(summary.youTotal)}
+                {formatAmount(summary.youTotal)}
               </Text>
               <Text
                 style={[
@@ -130,7 +130,7 @@ export function TotalsTables({ summary }: TotalsTablesProps) {
                   styles.boldText,
                 ]}
               >
-                {formatSEK(summary.partnerTotal)}
+                {formatAmount(summary.partnerTotal)}
               </Text>
               <Text
                 style={[
@@ -139,7 +139,7 @@ export function TotalsTables({ summary }: TotalsTablesProps) {
                   styles.boldText,
                 ]}
               >
-                {formatSEK(summary.grandTotal)}
+                {formatAmount(summary.grandTotal)}
               </Text>
             </View>
           </View>
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   tableCellText: {
-    fontSize: 14,
+    fontSize: 12,
     color: "#333",
   },
   categoryColumn: {
@@ -236,6 +236,7 @@ const styles = StyleSheet.create({
   amountColumn: {
     flex: 1,
     textAlign: "right",
+    flexWrap: "nowrap",
   },
   boldText: {
     fontWeight: "600",

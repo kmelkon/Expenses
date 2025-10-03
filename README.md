@@ -60,7 +60,30 @@ A minimal expense-tracking app for two people (Karam + Kazi) built with React Na
 
 ### Development
 
-The app includes seed data for testing in development mode. On first run, it will create sample expenses for the current month.
+#### Database Seed Data
+
+The app can seed sample expenses for testing in development mode. To enable seeding:
+
+1. **Set the environment variable**
+
+   Create or edit `.env` in the project root:
+
+   ```env
+   EXPO_PUBLIC_SEED=1
+   ```
+
+2. **Start the development server**
+
+   ```bash
+   npx expo start
+   ```
+
+   Seed data will only be inserted when both conditions are met:
+
+   - Running in development mode (`__DEV__ === true`)
+   - `EXPO_PUBLIC_SEED` environment variable is set to `'1'`
+
+**Important**: Seed data will NOT run or ship in production builds. The seed logic is dynamically imported only in development, ensuring it's tree-shaken in production bundles.
 
 #### Database Schema
 

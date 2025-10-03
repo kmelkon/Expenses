@@ -2,14 +2,18 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { openDB } from "../src/db/sqlite";
-import { seedTestData } from "../src/utils/seedData";
 
 export default function RootLayout() {
   useEffect(() => {
     // Initialize database on app start
     const initializeApp = async () => {
-      await openDB();
-      await seedTestData(); // Seed test data in development
+      const db = await openDB();
+
+      // Only seed in development when explicitly enabled
+      if (__DEV__ && process.env.EXPO_PUBLIC_SEED === "1") {
+        const { seed } = await import("../src/dev/seed");
+        await seed(db);
+      }
     };
 
     initializeApp().catch(console.error);

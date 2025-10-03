@@ -1,11 +1,14 @@
+import type { SQLiteDatabase } from "expo-sqlite";
 import { addExpense } from "../db/expenseRepo";
 import { getTodayYYYYMMDD } from "../utils/date";
 
-export async function seedTestData() {
-  if (!__DEV__) {
-    return; // Only seed in development
-  }
-
+/**
+ * Seeds the database with test data for development.
+ * Only call this function when __DEV__ && process.env.EXPO_PUBLIC_SEED === '1'
+ *
+ * @param db - The SQLite database instance
+ */
+export async function seed(db: SQLiteDatabase): Promise<void> {
   try {
     // Add some sample expenses for the current month
     const today = getTodayYYYYMMDD();
@@ -49,12 +52,12 @@ export async function seedTestData() {
       },
     ];
 
-    console.log("Seeding test data...");
+    console.log("[DEV] Seeding test data...");
     for (const expense of sampleExpenses) {
       await addExpense(expense);
     }
-    console.log("Test data seeded successfully!");
+    console.log("[DEV] Test data seeded successfully!");
   } catch (error) {
-    console.warn("Failed to seed test data:", error);
+    console.warn("[DEV] Failed to seed test data:", error);
   }
 }
