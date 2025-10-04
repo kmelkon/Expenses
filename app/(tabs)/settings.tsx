@@ -11,8 +11,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { exportDatabase, resetDatabase } from "../src/db/expenseRepo";
-import { useMonthStore } from "../src/store/useMonthStore";
+import { exportDatabase, resetDatabase } from "../../src/db/expenseRepo";
+import { useMonthStore } from "../../src/store/useMonthStore";
 
 export default function Settings() {
   const { resetToCurrentMonth, loadMonthData } = useMonthStore();
@@ -79,8 +79,8 @@ export default function Settings() {
 
                       // Optionally re-seed in dev mode
                       if (__DEV__ && process.env.EXPO_PUBLIC_SEED === "1") {
-                        const { getDB } = await import("../src/db/sqlite");
-                        const { seed } = await import("../src/dev/seed");
+                        const { getDB } = await import("../../src/db/sqlite");
+                        const { seed } = await import("../../src/dev/seed");
                         const db = await getDB();
                         await seed(db);
                       }
