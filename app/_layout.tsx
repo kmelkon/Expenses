@@ -1,10 +1,13 @@
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import { Text, TouchableOpacity } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { getDB } from "../src/db/sqlite";
 
 export default function RootLayout() {
+  const router = useRouter();
+
   useEffect(() => {
     // Initialize database on app start
     const initializeApp = async () => {
@@ -38,6 +41,14 @@ export default function RootLayout() {
           name="index"
           options={{
             title: "Expenses",
+            headerRight: () => (
+              <TouchableOpacity
+                onPress={() => router.push("/settings")}
+                style={{ marginRight: 16 }}
+              >
+                <Text style={{ fontSize: 24 }}>⚙️</Text>
+              </TouchableOpacity>
+            ),
           }}
         />
         <Stack.Screen
@@ -52,6 +63,13 @@ export default function RootLayout() {
           options={{
             title: "Edit Expense",
             presentation: "modal",
+          }}
+        />
+        <Stack.Screen
+          name="settings"
+          options={{
+            title: "Settings",
+            presentation: "card",
           }}
         />
       </Stack>

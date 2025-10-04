@@ -222,3 +222,33 @@ async function querySingle<T = any>(
   const rows = await query<T>(sql, params);
   return rows[0] ?? null;
 }
+
+// Database Export Types & Functions
+export interface DatabaseExport {
+  exportedAt: string;
+  appVersion: string;
+  totalExpenses: number;
+  expenses: ExpenseRow[];
+}
+
+export async function exportDatabase(): Promise<DatabaseExport> {
+  // Get ALL expenses including deleted ones
+  const allExpenses = await query<ExpenseRow>(
+    `SELECT * FROM expenses ORDER BY created_at DESC`
+  );
+
+  return {
+    exportedAt: new Date().toISOString(),
+    appVersion: require("../../app.json").expo.version,
+    totalExpenses: allExpenses.length,
+    expenses: allExpenses,
+  };
+}
+
+export async function resetDatabase(): Promise<void> {
+  // Delete all expenses (hard delete)
+  await exec(`DELETE FROM expenses`);
+
+  // Reset dirty flag table if it exists (for future sync)
+  // await exec(`DELETE FROM sync_queue`); // Future: when sync is implemented
+}
