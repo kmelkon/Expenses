@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -16,6 +17,7 @@ import { useMonthStore } from "../src/store/useMonthStore";
 import {
   formatExpenseDate,
   formatMonthDisplay,
+  getCurrentMonth,
   getNextMonth,
   getPreviousMonth,
 } from "../src/utils/date";
@@ -31,6 +33,7 @@ export default function Index() {
     error,
     setSelectedMonth,
     loadMonthData,
+    resetToCurrentMonth,
   } = useMonthStore();
 
   useEffect(() => {
@@ -43,6 +46,13 @@ export default function Index() {
 
   const handleNextMonth = () => {
     setSelectedMonth(getNextMonth(selectedMonth));
+  };
+
+  const handleMonthTitlePress = () => {
+    // Only navigate if not already on current month
+    if (selectedMonth !== getCurrentMonth()) {
+      resetToCurrentMonth();
+    }
   };
 
   const handleAddExpense = () => {
@@ -91,9 +101,19 @@ export default function Index() {
           <Text style={styles.monthButtonText}>‹</Text>
         </TouchableOpacity>
 
-        <Text style={styles.monthTitle}>
-          {formatMonthDisplay(selectedMonth)}
-        </Text>
+        <Pressable
+          onPress={handleMonthTitlePress}
+          style={({ pressed }) => [
+            styles.monthTitleContainer,
+            pressed &&
+              selectedMonth !== getCurrentMonth() &&
+              styles.monthTitlePressed,
+          ]}
+        >
+          <Text style={styles.monthTitle}>
+            {formatMonthDisplay(selectedMonth)}
+          </Text>
+        </Pressable>
 
         <TouchableOpacity style={styles.monthButton} onPress={handleNextMonth}>
           <Text style={styles.monthButtonText}>›</Text>
@@ -161,6 +181,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     color: "#333",
+  },
+  monthTitleContainer: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  monthTitlePressed: {
+    backgroundColor: "#F0F0F0",
+    opacity: 0.7,
   },
   list: {
     flex: 1,

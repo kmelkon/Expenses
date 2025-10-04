@@ -1,5 +1,5 @@
+import { CATEGORIES, Category, PAYER_IDS, PayerId } from "./schema";
 import { exec, query } from "./sqlite";
-import { Category, PayerId, CATEGORIES, PAYER_IDS } from "./schema";
 
 export interface ExpenseRow {
   id: string;
