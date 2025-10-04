@@ -1,5 +1,5 @@
+import { CATEGORIES, Category, PAYER_IDS, PayerId } from "./schema";
 import { exec, query } from "./sqlite";
-import { Category, PayerId, CATEGORIES, PAYER_IDS } from "./schema";
 
 export interface ExpenseRow {
   id: string;
@@ -15,6 +15,15 @@ export interface ExpenseRow {
 }
 
 export interface AddExpenseInput {
+  amount_cents: number;
+  paid_by: PayerId;
+  date: string; // 'YYYY-MM-DD'
+  note?: string;
+  category: Category;
+}
+
+export interface UpdateExpenseInput {
+  id: string;
   amount_cents: number;
   paid_by: PayerId;
   date: string; // 'YYYY-MM-DD'
@@ -171,6 +180,28 @@ export async function deleteExpense(id: string): Promise<void> {
     WHERE id = ?
   `,
     [now, id]
+  );
+}
+
+export async function updateExpense(input: UpdateExpenseInput): Promise<void> {
+  const now = new Date().toISOString();
+
+  await exec(
+    `
+    UPDATE expenses 
+    SET amount_cents = ?, paid_by = ?, date = ?, note = ?, category = ?, 
+        updated_at = ?, dirty = 1
+    WHERE id = ? AND deleted = 0
+  `,
+    [
+      input.amount_cents,
+      input.paid_by,
+      input.date,
+      input.note || null,
+      input.category,
+      now,
+      input.id,
+    ]
   );
 }
 
