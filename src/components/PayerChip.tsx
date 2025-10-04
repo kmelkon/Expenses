@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text } from "react-native";
-import { PayerId } from "../db/sqlite";
+import { PayerId } from "../db/schema";
 
 interface PayerChipProps {
   payerId: PayerId;

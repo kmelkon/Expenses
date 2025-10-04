@@ -1,4 +1,5 @@
-import { Category, PayerId, runSQL, runSQLExec, runSQLSingle } from "./sqlite";
+import { exec, query } from "./sqlite";
+import { Category, PayerId, CATEGORIES, PAYER_IDS } from "./schema";
 
 export interface ExpenseRow {
   id: string;
@@ -48,7 +49,7 @@ export async function addExpense(input: AddExpenseInput): Promise<string> {
   const id = generateId();
   const now = new Date().toISOString();
 
-  await runSQLExec(
+  await exec(
     `
     INSERT INTO expenses (
       id, amount_cents, paid_by, date, note, category, created_at, updated_at, deleted, dirty
@@ -79,7 +80,7 @@ export async function getExpensesByMonth(
   const nextYear = month === 12 ? year + 1 : year;
   const endDate = `${nextYear}-${nextMonth.toString().padStart(2, "0")}-01`;
 
-  return await runSQL<ExpenseRow>(
+  return await query<ExpenseRow>(
     `
     SELECT * FROM expenses 
     WHERE deleted = 0 
@@ -100,7 +101,7 @@ export async function getMonthSummary(yyyyMM: string): Promise<MonthSummary> {
   const endDate = `${nextYear}-${nextMonth.toString().padStart(2, "0")}-01`;
 
   // Get totals by person
-  const totalsByPerson = await runSQL<PersonTotal>(
+  const totalsByPerson = await query<PersonTotal>(
     `
     SELECT paid_by, SUM(amount_cents) as total
     FROM expenses
@@ -113,7 +114,7 @@ export async function getMonthSummary(yyyyMM: string): Promise<MonthSummary> {
   );
 
   // Get totals by category and person
-  const totalsByCategory = await runSQL<CategoryPersonTotal>(
+  const rawTotalsByCategory = await query<CategoryPersonTotal>(
     `
     SELECT category, paid_by, SUM(amount_cents) as total
     FROM expenses
@@ -125,6 +126,24 @@ export async function getMonthSummary(yyyyMM: string): Promise<MonthSummary> {
   `,
     [startDate, endDate]
   );
+
+  // Normalize category × person matrix to include zeros for missing combinations
+  const totalsByCategoryMap = new Map<string, CategoryPersonTotal>();
+  for (const row of rawTotalsByCategory) {
+    const key = `${row.category}|${row.paid_by}`;
+    totalsByCategoryMap.set(key, row);
+  }
+
+  const totalsByCategory: CategoryPersonTotal[] = [];
+  for (const category of CATEGORIES) {
+    for (const payerId of PAYER_IDS) {
+      const key = `${category}|${payerId}`;
+      const existing = totalsByCategoryMap.get(key);
+      totalsByCategory.push(
+        existing || { category, paid_by: payerId, total: 0 }
+      );
+    }
+  }
 
   // Calculate grand total and individual totals
   const grandTotal = totalsByPerson.reduce((sum, item) => sum + item.total, 0);
@@ -145,7 +164,7 @@ export async function getMonthSummary(yyyyMM: string): Promise<MonthSummary> {
 export async function deleteExpense(id: string): Promise<void> {
   const now = new Date().toISOString();
 
-  await runSQLExec(
+  await exec(
     `
     UPDATE expenses 
     SET deleted = 1, updated_at = ?, dirty = 1
@@ -156,11 +175,19 @@ export async function deleteExpense(id: string): Promise<void> {
 }
 
 export async function getExpenseById(id: string): Promise<ExpenseRow | null> {
-  return await runSQLSingle<ExpenseRow>(
+  return await querySingle<ExpenseRow>(
     `
     SELECT * FROM expenses 
     WHERE id = ? AND deleted = 0
   `,
     [id]
   );
+}
+
+async function querySingle<T = any>(
+  sql: string,
+  params: any[] = []
+): Promise<T | null> {
+  const rows = await query<T>(sql, params);
+  return rows[0] ?? null;
 }

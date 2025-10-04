@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { CATEGORIES, Category } from "../db/sqlite";
+import { CATEGORIES, Category } from "../db/schema";
 
 interface CategoryPickerProps {
   selectedCategory: Category | null;

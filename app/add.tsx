@@ -18,7 +18,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CategoryPicker } from "../src/components/CategoryPicker";
 import { addExpense } from "../src/db/expenseRepo";
-import { Category, PayerId } from "../src/db/sqlite";
+import { Category, PayerId } from "../src/db/schema";
 import { useMonthStore } from "../src/store/useMonthStore";
 import { getTodayYYYYMMDD } from "../src/utils/date";
 import { parseAmountInput } from "../src/utils/money";

@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { MonthSummary } from "../db/expenseRepo";
-import { CATEGORIES } from "../db/sqlite";
+import { CATEGORIES, Category, PayerId } from "../db/schema";
 import { formatAmount } from "../utils/money";
 import { PayerChip } from "./PayerChip";
 
@@ -11,15 +11,12 @@ interface TotalsTablesProps {
 
 export function TotalsTables({ summary }: TotalsTablesProps) {
   // Create a map for easy lookup of category totals by person
-  const categoryTotalsMap = new Map<string, { you: number; partner: number }>();
+  const categoryTotalsMap = new Map<Category, Record<PayerId, number>>();
 
-  summary.totalsByCategory.forEach((item) => {
-    const key = item.category;
-    if (!categoryTotalsMap.has(key)) {
-      categoryTotalsMap.set(key, { you: 0, partner: 0 });
-    }
-    const existing = categoryTotalsMap.get(key)!;
-    existing[item.paid_by] = item.total;
+  summary.totalsByCategory.forEach(({ category, paid_by, total }) => {
+    const current = categoryTotalsMap.get(category) ?? { you: 0, partner: 0 };
+    current[paid_by] = total;
+    categoryTotalsMap.set(category, current);
   });
 
   return (

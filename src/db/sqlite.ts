@@ -1,108 +1,108 @@
-import * as SQLite from "expo-sqlite";
+import * as SQLite from 'expo-sqlite';
 
-export interface DatabaseSchema {
-  expenses: {
-    id: string;
-    amount_cents: number;
-    paid_by: "you" | "partner";
-    date: string; // 'YYYY-MM-DD'
-    note: string | null;
-    category: string;
-    created_at: string; // ISO timestamp
-    updated_at: string; // ISO timestamp
-    deleted: number; // 0 or 1
-    dirty: number; // 0 or 1, for future sync
-  };
-}
+const DB_NAME = 'expenses.db';
 
-export const CATEGORIES = [
-  "Groceries",
-  "Rent",
-  "Mortgage",
-  "Electricity",
-  "Electricity network",
-  "Garbage collection",
-  "Internet",
-  "Bensin",
-  "House insurance",
-  "Car insurance",
-  "Eating out",
-  "Kid",
-] as const;
+let _db: SQLite.SQLiteDatabase | null = null;
+let opening: Promise<SQLite.SQLiteDatabase> | null = null;
 
-export type Category = (typeof CATEGORIES)[number];
-export type PayerId = "you" | "partner";
+type DBTask<T> = (db: SQLite.SQLiteDatabase) => Promise<T>;
 
-let db: SQLite.SQLiteDatabase | null = null;
-
-export async function openDB(): Promise<SQLite.SQLiteDatabase> {
-  if (db) {
-    return db;
+export async function getDB(): Promise<SQLite.SQLiteDatabase> {
+  if (_db) {
+    return _db;
   }
 
-  db = await SQLite.openDatabaseAsync("expenses.db");
-  await runMigrations(db);
-  return db;
+  if (!opening) {
+    opening = (async () => {
+      try {
+        const db = await SQLite.openDatabaseAsync(DB_NAME);
+        await db.execAsync('PRAGMA journal_mode=WAL;');
+        await runMigrations(db);
+        _db = db;
+        return db;
+      } finally {
+        opening = null;
+      }
+    })();
+  }
+
+  return opening!;
 }
 
-async function runMigrations(database: SQLite.SQLiteDatabase): Promise<void> {
-  // Create expenses table
-  await database.execAsync(`
-    CREATE TABLE IF NOT EXISTS expenses (
-      id TEXT PRIMARY KEY,
-      amount_cents INTEGER NOT NULL,
-      paid_by TEXT NOT NULL CHECK (paid_by IN ('you','partner')),
-      date TEXT NOT NULL,
-      note TEXT NULL,
-      category TEXT NOT NULL CHECK (category IN (
-        'Groceries','Rent','Mortgage','Electricity','Electricity network',
-        'Garbage collection','Internet','Bensin','House insurance',
-        'Car insurance','Eating out','Kid'
-      )),
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL,
-      deleted INTEGER NOT NULL DEFAULT 0,
-      dirty INTEGER NOT NULL DEFAULT 0
-    );
-  `);
-
-  // Create indexes
-  await database.execAsync(`
-    CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date);
-    CREATE INDEX IF NOT EXISTS idx_expenses_paid_by ON expenses(paid_by);
-    CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category);
-  `);
+export async function query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
+  return withDB(async (db) => {
+    const rows = await db.getAllAsync(sql, params);
+    return rows as T[];
+  });
 }
 
-export async function runSQL<T = any>(
-  query: string,
-  params: any[] = []
-): Promise<T[]> {
-  const database = await openDB();
-  const result = await database.getAllAsync(query, params);
-  return result as T[];
+export async function exec(sql: string, params: any[] = []): Promise<void> {
+  await withDB(async (db) => {
+    await db.runAsync(sql, params);
+  });
 }
 
-export async function runSQLSingle<T = any>(
-  query: string,
-  params: any[] = []
-): Promise<T | null> {
-  const database = await openDB();
-  const result = await database.getFirstAsync(query, params);
-  return (result as T) || null;
+async function withDB<T>(fn: DBTask<T>, retried = false): Promise<T> {
+  try {
+    const db = await getDB();
+    return await fn(db);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : error != null ? String(error) : '';
+
+    if (message && /(non-normal file|prepareAsync|database is closed|nullpointer)/i.test(message)) {
+      if (/non-normal file/i.test(message)) {
+        try {
+          await SQLite.deleteDatabaseAsync?.(DB_NAME);
+        } catch {
+          // ignore cleanup failure; we'll retry with a fresh connection
+        }
+      }
+
+      _db = null;
+      opening = null;
+
+      if (!retried) {
+        return withDB(fn, true);
+      }
+    }
+
+    throw error;
+  }
 }
 
-export async function runSQLExec(
-  query: string,
-  params: any[] = []
-): Promise<SQLite.SQLiteRunResult> {
-  const database = await openDB();
-  return await database.runAsync(query, params);
-}
+async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
+  await db.withTransactionAsync(async () => {
+    const rows = await db.getAllAsync<{ user_version: number }>('PRAGMA user_version;');
+    const version = rows[0]?.user_version ?? 0;
 
-export async function runTransaction(
-  callback: () => Promise<void>
-): Promise<void> {
-  const database = await openDB();
-  return await database.withTransactionAsync(callback);
+    if (version === 0) {
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS expenses (
+          id TEXT PRIMARY KEY,
+          amount_cents INTEGER NOT NULL,
+          paid_by TEXT NOT NULL CHECK (paid_by IN ('you','partner')),
+          date TEXT NOT NULL,
+          note TEXT NULL,
+          category TEXT NOT NULL CHECK (category IN (
+            'Groceries','Rent','Mortgage','Electricity','Electricity network',
+            'Garbage collection','Internet','Bensin','House insurance',
+            'Car insurance','Eating out','Kid'
+          )),
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          deleted INTEGER NOT NULL DEFAULT 0,
+          dirty INTEGER NOT NULL DEFAULT 0
+        );
+      `);
+
+      await db.execAsync(`
+        CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date);
+        CREATE INDEX IF NOT EXISTS idx_expenses_paid_by ON expenses(paid_by);
+        CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category);
+      `);
+
+      await db.execAsync('PRAGMA user_version = 1;');
+    }
+  });
 }
