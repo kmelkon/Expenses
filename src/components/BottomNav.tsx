@@ -21,7 +21,7 @@ export default function BottomNav() {
   const handleHomePress = () => {
     // Only navigate if not already on home
     if (!isHomeActive) {
-      router.navigate("/(tabs)");
+      router.navigate("/(tabs)/");
     }
   };
 
