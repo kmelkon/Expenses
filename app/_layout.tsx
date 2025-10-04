@@ -1,12 +1,13 @@
-import { Stack, useRouter } from "expo-router";
+import { Stack, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import { Text, TouchableOpacity } from "react-native";
+import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import BottomNav from "../src/components/BottomNav";
 import { getDB } from "../src/db/sqlite";
 
 export default function RootLayout() {
-  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     // Initialize database on app start
@@ -23,56 +24,51 @@ export default function RootLayout() {
     initializeApp().catch(console.error);
   }, []);
 
+  // Hide bottom nav on add and edit modals
+  const shouldShowBottomNav =
+    !pathname.startsWith("/add") && !pathname.startsWith("/edit");
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="auto" />
-      <Stack
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: "#007AFF",
-          },
-          headerTintColor: "#fff",
-          headerTitleStyle: {
-            fontWeight: "600",
-          },
-        }}
-      >
-        <Stack.Screen
-          name="index"
-          options={{
-            title: "Expenses",
-            headerRight: () => (
-              <TouchableOpacity
-                onPress={() => router.push("/settings")}
-                style={{ marginRight: 16 }}
-              >
-                <Text style={{ fontSize: 24 }}>⚙️</Text>
-              </TouchableOpacity>
-            ),
+      <View style={{ flex: 1 }}>
+        <Stack
+          screenOptions={{
+            headerStyle: {
+              backgroundColor: "#007AFF",
+            },
+            headerTintColor: "#fff",
+            headerTitleStyle: {
+              fontWeight: "600",
+            },
           }}
-        />
-        <Stack.Screen
-          name="add"
-          options={{
-            title: "Add Expense",
-            presentation: "modal",
-          }}
-        />
-        <Stack.Screen
-          name="edit/[id]"
-          options={{
-            title: "Edit Expense",
-            presentation: "modal",
-          }}
-        />
-        <Stack.Screen
-          name="settings"
-          options={{
-            title: "Settings",
-            presentation: "card",
-          }}
-        />
-      </Stack>
+        >
+          {/* Tabs Group - Home and Settings */}
+          <Stack.Screen
+            name="(tabs)"
+            options={{
+              headerShown: false, // Tabs will manage their own headers
+            }}
+          />
+
+          {/* Modal Screens */}
+          <Stack.Screen
+            name="add"
+            options={{
+              title: "Add Expense",
+              presentation: "modal",
+            }}
+          />
+          <Stack.Screen
+            name="edit/[id]"
+            options={{
+              title: "Edit Expense",
+              presentation: "modal",
+            }}
+          />
+        </Stack>
+        {shouldShowBottomNav && <BottomNav />}
+      </View>
     </GestureHandlerRootView>
   );
 }

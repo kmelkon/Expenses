@@ -11,18 +11,18 @@ import {
   View,
 } from "react-native";
 import Swipeable from "react-native-gesture-handler/Swipeable";
-import { PayerChip } from "../src/components/PayerChip";
-import { TotalsTables } from "../src/components/TotalsTables";
-import { ExpenseRow, deleteExpense } from "../src/db/expenseRepo";
-import { useMonthStore } from "../src/store/useMonthStore";
+import { PayerChip } from "../../src/components/PayerChip";
+import { TotalsTables } from "../../src/components/TotalsTables";
+import { ExpenseRow, deleteExpense } from "../../src/db/expenseRepo";
+import { useMonthStore } from "../../src/store/useMonthStore";
 import {
   formatExpenseDate,
   formatMonthDisplay,
   getCurrentMonth,
   getNextMonth,
   getPreviousMonth,
-} from "../src/utils/date";
-import { formatAmount } from "../src/utils/money";
+} from "../../src/utils/date";
+import { formatAmount } from "../../src/utils/money";
 
 export default function Index() {
   const router = useRouter();
@@ -54,10 +54,6 @@ export default function Index() {
     if (selectedMonth !== getCurrentMonth()) {
       resetToCurrentMonth();
     }
-  };
-
-  const handleAddExpense = () => {
-    router.push("/add");
   };
 
   const handleDeleteExpense = async (expense: ExpenseRow) => {
@@ -127,7 +123,7 @@ export default function Index() {
     <View style={styles.emptyState}>
       <Text style={styles.emptyStateTitle}>No expenses this month</Text>
       <Text style={styles.emptyStateMessage}>
-        Tap the + button to add your first expense
+        Tap the Add button below to add your first expense
       </Text>
     </View>
   );
@@ -186,11 +182,6 @@ export default function Index() {
           showsVerticalScrollIndicator={false}
         />
       )}
-
-      {/* Floating Add Button */}
-      <TouchableOpacity style={styles.addButton} onPress={handleAddExpense}>
-        <Text style={styles.addButtonText}>+</Text>
-      </TouchableOpacity>
     </View>
   );
 }
@@ -242,7 +233,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: 16,
-    paddingBottom: 100, // Space for floating button
+    paddingBottom: 16, // Reduced since no floating button
   },
   loadingContainer: {
     flex: 1,
@@ -312,27 +303,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
     textAlign: "center",
-  },
-  addButton: {
-    position: "absolute",
-    bottom: 24,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#007AFF",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  addButtonText: {
-    fontSize: 24,
-    fontWeight: "600",
-    color: "white",
   },
   deleteAction: {
     backgroundColor: "#FF3B30",
