@@ -1,4 +1,5 @@
 import Constants from "expo-constants";
+import * as DocumentPicker from "expo-document-picker";
 import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import React, { useState } from "react";
@@ -11,13 +12,20 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { exportDatabase, resetDatabase } from "../../src/db/expenseRepo";
+import type { DatabaseExport } from "../../src/db/expenseRepo";
+import {
+  exportDatabase,
+  importDatabase,
+  isValidDatabaseExport,
+  resetDatabase,
+} from "../../src/db/expenseRepo";
 import { useMonthStore } from "../../src/store/useMonthStore";
 
 export default function Settings() {
   const { resetToCurrentMonth, loadMonthData } = useMonthStore();
   const [isExporting, setIsExporting] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
 
   const appVersion = Constants.expoConfig?.version ?? "0.0.1";
   const platform = Platform.OS === "ios" ? "iOS" : "Android";
@@ -54,6 +62,99 @@ export default function Settings() {
     }
   };
 
+  const handleImportData = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "application/json",
+        multiple: false,
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled) {
+        return;
+      }
+
+      const file = result.assets?.[0];
+      if (!file?.uri) {
+        Alert.alert("Import Failed", "Unable to access the selected file.");
+        return;
+      }
+
+      // Use new File API instead of deprecated readAsStringAsync
+      const importedFile = new File(file.uri);
+      const fileContents = await importedFile.text();
+
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(fileContents);
+      } catch (error) {
+        console.error("Failed to parse import file:", error);
+        Alert.alert("Invalid File", "The selected file is not valid JSON.");
+        return;
+      }
+
+      if (!isValidDatabaseExport(parsed)) {
+        Alert.alert(
+          "Invalid Backup",
+          "The selected file does not match the expected Expenses backup format."
+        );
+        return;
+      }
+
+      const backup = parsed as DatabaseExport;
+      const fileName = file.name ?? "selected file";
+
+      const executeImport = () => {
+        void (async () => {
+          setIsImporting(true);
+          try {
+            await importDatabase(backup);
+            resetToCurrentMonth();
+            await loadMonthData();
+            Alert.alert("Success", "Expenses imported successfully.");
+          } catch (error) {
+            console.error("Import failed:", error);
+            Alert.alert(
+              "Import Failed",
+              "Could not import data. Please try again."
+            );
+          } finally {
+            setIsImporting(false);
+          }
+        })();
+      };
+
+      Alert.alert(
+        "Import Expenses",
+        `Replace all current expenses with data from ${fileName}?`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Continue",
+            style: "destructive",
+            onPress: () => {
+              Alert.alert(
+                "Final Confirmation",
+                "This will erase existing expenses before importing. Continue?",
+                [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: "Import",
+                    style: "destructive",
+                    onPress: executeImport,
+                  },
+                ]
+              );
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error("Import flow error:", error);
+      Alert.alert("Import Failed", "Something went wrong while importing.");
+    }
+  };
+
   const handleResetDatabase = () => {
     Alert.alert(
       "Reset Database",
@@ -78,12 +179,12 @@ export default function Settings() {
                       await resetDatabase();
 
                       // Optionally re-seed in dev mode
-                      // if (__DEV__ && process.env.EXPO_PUBLIC_SEED === "1") {
-                      //   const { getDB } = await import("../../src/db/sqlite");
-                      //   const { seed } = await import("../../src/dev/seed");
-                      //   const db = await getDB();
-                      //   await seed(db);
-                      // }
+                      if (__DEV__ && process.env.EXPO_PUBLIC_SEED === "1") {
+                        const { getDB } = await import("../../src/db/sqlite");
+                        const { seed } = await import("../../src/dev/seed");
+                        const db = await getDB();
+                        await seed(db);
+                      }
 
                       resetToCurrentMonth();
                       await loadMonthData();
@@ -142,6 +243,21 @@ export default function Settings() {
 
         <Text style={styles.helpText}>
           Export all your expense data as a JSON file for backup or analysis
+        </Text>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleImportData}
+          disabled={isImporting}
+        >
+          <Text style={styles.buttonText}>
+            {isImporting ? "Importing..." : "Import Data from JSON"}
+          </Text>
+        </TouchableOpacity>
+
+        <Text style={styles.helpText}>
+          Import a previously exported backup. This will replace all existing
+          expenses.
         </Text>
       </View>
 
