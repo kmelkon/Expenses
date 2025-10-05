@@ -266,7 +266,7 @@ export default function AddExpense() {
         style={[
           styles.buttons,
           {
-            paddingBottom: insets.bottom + 12,
+            paddingBottom: Math.max(insets.bottom + 12, 24),
           },
         ]}
       >
@@ -369,6 +369,7 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: "#E0E0E0",
     gap: 12,
+    marginBottom: Platform.OS === "android" ? 32 : 0,
   },
   button: {
     flex: 1,

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CATEGORIES, Category } from "../db/schema";
 
 interface CategoryPickerProps {
@@ -21,6 +22,7 @@ export function CategoryPicker({
   placeholder = "Select category",
 }: CategoryPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const handleSelect = (category: Category) => {
     onSelect(category);
@@ -55,7 +57,10 @@ export function CategoryPicker({
           onPress={() => setIsOpen(false)}
         >
           <TouchableOpacity
-            style={styles.modalContent}
+            style={[
+              styles.modalContent,
+              { paddingBottom: Math.max(insets.bottom, 16) },
+            ]}
             activeOpacity={1}
             onPress={(e) => e.stopPropagation()}
           >
@@ -125,8 +130,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingBottom: 20,
-    height: 500,
+    maxHeight: "80%",
   },
   modalHeader: {
     flexDirection: "row",

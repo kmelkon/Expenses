@@ -15,10 +15,10 @@ export default function RootLayout() {
       const db = await getDB();
 
       // Only seed in development when explicitly enabled
-      if (__DEV__ && process.env.EXPO_PUBLIC_SEED === "1") {
-        const { seed } = await import("../src/dev/seed");
-        await seed(db);
-      }
+      // if (__DEV__ && process.env.EXPO_PUBLIC_SEED === "1") {
+      //   const { seed } = await import("../src/dev/seed");
+      //   await seed(db);
+      // }
     };
 
     initializeApp().catch(console.error);

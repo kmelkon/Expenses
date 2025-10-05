@@ -1,17 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { usePathname, useRouter } from "expo-router";
 import React from "react";
-import {
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function BottomNav() {
   const router = useRouter();
   const pathname = usePathname();
+  const insets = useSafeAreaInsets();
 
   // Check if we're on a specific tab (handles both / and /(tabs) patterns)
   const isHomeActive = pathname === "/" || pathname === "/(tabs)";
@@ -38,7 +34,7 @@ export default function BottomNav() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}>
       {/* Home/Expenses Tab */}
       <TouchableOpacity
         style={styles.tab}
@@ -99,7 +95,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: "#E0E0E0",
-    paddingBottom: Platform.OS === "ios" ? 20 : 8,
+    paddingBottom: 8,
     paddingTop: 8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -2 },

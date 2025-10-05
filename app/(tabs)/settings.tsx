@@ -78,12 +78,12 @@ export default function Settings() {
                       await resetDatabase();
 
                       // Optionally re-seed in dev mode
-                      if (__DEV__ && process.env.EXPO_PUBLIC_SEED === "1") {
-                        const { getDB } = await import("../../src/db/sqlite");
-                        const { seed } = await import("../../src/dev/seed");
-                        const db = await getDB();
-                        await seed(db);
-                      }
+                      // if (__DEV__ && process.env.EXPO_PUBLIC_SEED === "1") {
+                      //   const { getDB } = await import("../../src/db/sqlite");
+                      //   const { seed } = await import("../../src/dev/seed");
+                      //   const db = await getDB();
+                      //   await seed(db);
+                      // }
 
                       resetToCurrentMonth();
                       await loadMonthData();
