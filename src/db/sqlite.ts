@@ -137,6 +137,9 @@ async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
     for (const migration of MIGRATIONS) {
       if (currentVersion < migration.toVersion) {
         await migration.up(db);
+        if (!Number.isSafeInteger(migration.toVersion)) {
+          throw new Error(`Invalid migration.toVersion: ${migration.toVersion}`);
+        }
         await db.execAsync(`PRAGMA user_version = ${migration.toVersion};`);
         currentVersion = migration.toVersion;
       }
