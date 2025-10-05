@@ -1,29 +1,26 @@
 import React from "react";
 import { StyleSheet, Text } from "react-native";
 import { PayerId } from "../db/schema";
+import { usePayerDisplayName } from "../store/useSettingsStore";
 
 interface PayerChipProps {
   payerId: PayerId;
   size?: "small" | "medium";
 }
 
-const USERS = {
-  you: "Karam",
-  partner: "Kazi",
-} as const;
-
 export function PayerChip({ payerId, size = "medium" }: PayerChipProps) {
-  const isYou = payerId === "you";
+  const displayName = usePayerDisplayName(payerId);
+  const isHubby = payerId === "hubby";
 
   return (
     <Text
       style={[
         styles.chip,
-        isYou ? styles.youChip : styles.partnerChip,
+        isHubby ? styles.hubbyChip : styles.wifeyChip,
         size === "small" ? styles.smallChip : styles.mediumChip,
       ]}
     >
-      {USERS[payerId]}
+      {displayName}
     </Text>
   );
 }
@@ -44,11 +41,11 @@ const styles = StyleSheet.create({
   mediumChip: {
     fontSize: 14,
   },
-  youChip: {
+  hubbyChip: {
     backgroundColor: "#E3F2FD",
     color: "#1565C0",
   },
-  partnerChip: {
+  wifeyChip: {
     backgroundColor: "#F3E5F5",
     color: "#7B1FA2",
   },

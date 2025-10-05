@@ -1,7 +1,8 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { MonthSummary } from "../db/expenseRepo";
-import { CATEGORIES, Category, PayerId } from "../db/schema";
+import { Category } from "../db/schema";
+import { useCategories, usePayers } from "../store/useSettingsStore";
 import { formatAmount } from "../utils/money";
 import { PayerChip } from "./PayerChip";
 
@@ -10,11 +11,20 @@ interface TotalsTablesProps {
 }
 
 export function TotalsTables({ summary }: TotalsTablesProps) {
+  const categories = useCategories();
+  const payers = usePayers();
+
   // Create a map for easy lookup of category totals by person
-  const categoryTotalsMap = new Map<Category, Record<PayerId, number>>();
+  const categoryTotalsMap = new Map<Category, Record<string, number>>();
 
   summary.totalsByCategory.forEach(({ category, paid_by, total }) => {
-    const current = categoryTotalsMap.get(category) ?? { you: 0, partner: 0 };
+    const current = categoryTotalsMap.get(category) ?? {};
+    // Initialize all payers to 0 if not present
+    payers.forEach((p) => {
+      if (!(p.id in current)) {
+        current[p.id] = 0;
+      }
+    });
     current[paid_by] = total;
     categoryTotalsMap.set(category, current);
   });
@@ -25,18 +35,17 @@ export function TotalsTables({ summary }: TotalsTablesProps) {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Monthly Totals</Text>
         <View style={styles.summaryRow}>
-          <View style={styles.summaryItem}>
-            <PayerChip payerId="you" size="small" />
-            <Text style={styles.summaryAmount}>
-              {formatAmount(summary.youTotal)}
-            </Text>
-          </View>
-          <View style={styles.summaryItem}>
-            <PayerChip payerId="partner" size="small" />
-            <Text style={styles.summaryAmount}>
-              {formatAmount(summary.partnerTotal)}
-            </Text>
-          </View>
+          {payers.map((payer) => {
+            const total =
+              summary.totalsByPerson.find((p) => p.paid_by === payer.id)
+                ?.total ?? 0;
+            return (
+              <View key={payer.id} style={styles.summaryItem}>
+                <PayerChip payerId={payer.id} size="small" />
+                <Text style={styles.summaryAmount}>{formatAmount(total)}</Text>
+              </View>
+            );
+          })}
         </View>
         <View style={styles.grandTotalRow}>
           <Text style={styles.grandTotalLabel}>Total (SEK)</Text>
@@ -56,37 +65,52 @@ export function TotalsTables({ summary }: TotalsTablesProps) {
               <Text style={[styles.tableHeaderText, styles.categoryColumn]}>
                 Category
               </Text>
-              <Text style={[styles.tableHeaderText, styles.amountColumn]}>
-                Karam
-              </Text>
-              <Text style={[styles.tableHeaderText, styles.amountColumn]}>
-                Kazi
-              </Text>
+              {payers.map((payer) => (
+                <Text
+                  key={payer.id}
+                  style={[styles.tableHeaderText, styles.amountColumn]}
+                >
+                  {payer.display_name}
+                </Text>
+              ))}
               <Text style={[styles.tableHeaderText, styles.amountColumn]}>
                 Total
               </Text>
             </View>
 
             {/* Table Rows */}
-            {CATEGORIES.map((category) => {
-              const totals = categoryTotalsMap.get(category);
-              if (!totals || (totals.you === 0 && totals.partner === 0)) {
+            {categories.map((category) => {
+              const totals = categoryTotalsMap.get(category.name);
+              if (!totals) {
                 return null; // Skip categories with no expenses
               }
 
-              const rowTotal = totals.you + totals.partner;
+              // Check if category has any expenses
+              const hasExpenses = Object.values(totals).some((v) => v > 0);
+              if (!hasExpenses) {
+                return null;
+              }
+
+              const rowTotal = Object.values(totals).reduce(
+                (sum, v) => sum + v,
+                0
+              );
 
               return (
-                <View key={category} style={styles.tableRow}>
+                <View key={category.id} style={styles.tableRow}>
                   <Text style={[styles.tableCellText, styles.categoryColumn]}>
-                    {category}
+                    {category.name}
                   </Text>
-                  <Text style={[styles.tableCellText, styles.amountColumn]}>
-                    {totals.you > 0 ? formatAmount(totals.you) : "-"}
-                  </Text>
-                  <Text style={[styles.tableCellText, styles.amountColumn]}>
-                    {totals.partner > 0 ? formatAmount(totals.partner) : "-"}
-                  </Text>
+                  {payers.map((payer) => (
+                    <Text
+                      key={payer.id}
+                      style={[styles.tableCellText, styles.amountColumn]}
+                    >
+                      {totals[payer.id] > 0
+                        ? formatAmount(totals[payer.id])
+                        : "-"}
+                    </Text>
+                  ))}
                   <Text
                     style={[
                       styles.tableCellText,
@@ -111,24 +135,23 @@ export function TotalsTables({ summary }: TotalsTablesProps) {
               >
                 TOTAL
               </Text>
-              <Text
-                style={[
-                  styles.tableCellText,
-                  styles.amountColumn,
-                  styles.boldText,
-                ]}
-              >
-                {formatAmount(summary.youTotal)}
-              </Text>
-              <Text
-                style={[
-                  styles.tableCellText,
-                  styles.amountColumn,
-                  styles.boldText,
-                ]}
-              >
-                {formatAmount(summary.partnerTotal)}
-              </Text>
+              {payers.map((payer) => {
+                const total =
+                  summary.totalsByPerson.find((p) => p.paid_by === payer.id)
+                    ?.total ?? 0;
+                return (
+                  <Text
+                    key={payer.id}
+                    style={[
+                      styles.tableCellText,
+                      styles.amountColumn,
+                      styles.boldText,
+                    ]}
+                  >
+                    {formatAmount(total)}
+                  </Text>
+                );
+              })}
               <Text
                 style={[
                   styles.tableCellText,
