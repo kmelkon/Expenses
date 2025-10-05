@@ -1,6 +1,6 @@
-import * as SQLite from 'expo-sqlite';
+import * as SQLite from "expo-sqlite";
 
-const DB_NAME = 'expenses.db';
+const DB_NAME = "expenses.db";
 
 let _db: SQLite.SQLiteDatabase | null = null;
 let opening: Promise<SQLite.SQLiteDatabase> | null = null;
@@ -16,7 +16,7 @@ export async function getDB(): Promise<SQLite.SQLiteDatabase> {
     opening = (async () => {
       try {
         const db = await SQLite.openDatabaseAsync(DB_NAME);
-        await db.execAsync('PRAGMA journal_mode=WAL;');
+        await db.execAsync("PRAGMA journal_mode=WAL;");
         await runMigrations(db);
         _db = db;
         return db;
@@ -29,7 +29,10 @@ export async function getDB(): Promise<SQLite.SQLiteDatabase> {
   return opening!;
 }
 
-export async function query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
+export async function query<T = any>(
+  sql: string,
+  params: any[] = []
+): Promise<T[]> {
   return withDB(async (db) => {
     const rows = await db.getAllAsync(sql, params);
     return rows as T[];
@@ -48,9 +51,18 @@ async function withDB<T>(fn: DBTask<T>, retried = false): Promise<T> {
     return await fn(db);
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : error != null ? String(error) : '';
+      error instanceof Error
+        ? error.message
+        : error != null
+        ? String(error)
+        : "";
 
-    if (message && /(non-normal file|prepareAsync|database is closed|nullpointer)/i.test(message)) {
+    if (
+      message &&
+      /(non-normal file|prepareAsync|database is closed|nullpointer)/i.test(
+        message
+      )
+    ) {
       if (/non-normal file/i.test(message)) {
         try {
           await SQLite.deleteDatabaseAsync?.(DB_NAME);
@@ -71,12 +83,15 @@ async function withDB<T>(fn: DBTask<T>, retried = false): Promise<T> {
   }
 }
 
-async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
-  await db.withTransactionAsync(async () => {
-    const rows = await db.getAllAsync<{ user_version: number }>('PRAGMA user_version;');
-    const version = rows[0]?.user_version ?? 0;
+type Migration = {
+  toVersion: number;
+  up: (db: SQLite.SQLiteDatabase) => Promise<void>;
+};
 
-    if (version === 0) {
+const MIGRATIONS: Migration[] = [
+  {
+    toVersion: 1,
+    up: async (db) => {
       await db.execAsync(`
         CREATE TABLE IF NOT EXISTS expenses (
           id TEXT PRIMARY KEY,
@@ -101,8 +116,33 @@ async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
         CREATE INDEX IF NOT EXISTS idx_expenses_paid_by ON expenses(paid_by);
         CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category);
       `);
+    },
+  },
+  // Future migrations go here:
+  // {
+  //   toVersion: 2,
+  //   up: async (db) => {
+  //     await db.execAsync('ALTER TABLE expenses ADD COLUMN new_field TEXT;');
+  //   },
+  // },
+];
 
-      await db.execAsync('PRAGMA user_version = 1;');
+async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
+  await db.withTransactionAsync(async () => {
+    const rows = await db.getAllAsync<{ user_version: number }>(
+      "PRAGMA user_version;"
+    );
+    let currentVersion = rows[0]?.user_version ?? 0;
+
+    for (const migration of MIGRATIONS) {
+      if (currentVersion < migration.toVersion) {
+        await migration.up(db);
+        if (!Number.isSafeInteger(migration.toVersion)) {
+          throw new Error(`Invalid migration.toVersion: ${migration.toVersion}`);
+        }
+        await db.execAsync(`PRAGMA user_version = ${migration.toVersion};`);
+        currentVersion = migration.toVersion;
+      }
     }
   });
 }
