@@ -327,6 +327,14 @@ export function isValidDatabaseExport(value: unknown): value is DatabaseExport {
   return true;
 }
 
+/**
+ * Imports the given database export by replacing all existing expenses.
+ * 
+ * **Warning:** This is a destructive operation. All existing expenses in the database
+ * will be permanently deleted before importing the new data. Use with caution.
+ *
+ * @param data The database export to import.
+ */
 export async function importDatabase(data: DatabaseExport): Promise<void> {
   const db = await getDB();
 
