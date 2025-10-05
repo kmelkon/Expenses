@@ -253,6 +253,14 @@ export async function resetDatabase(): Promise<void> {
   // await exec(`DELETE FROM sync_queue`); // Future: when sync is implemented
 }
 
+/**
+ * Validates whether the provided value conforms to the DatabaseExport structure.
+ * This function checks the integrity and types of all fields, ensuring the data matches
+ * the expected schema for database import/export operations.
+ *
+ * @param value - The value to validate, typically parsed from an external source (e.g., JSON).
+ * @returns True if the value is a valid DatabaseExport object; otherwise, false.
+ */
 export function isValidDatabaseExport(value: unknown): value is DatabaseExport {
   if (!value || typeof value !== "object") {
     return false;
