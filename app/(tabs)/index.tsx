@@ -140,6 +140,7 @@ export default function Index() {
           style={styles.monthButton}
           onPress={handlePreviousMonth}
         >
+          {/* TODO: use icon instead of text for the chevron here and for the next button">"" */}
           <Text style={styles.monthButtonText}>‹</Text>
         </TouchableOpacity>
 

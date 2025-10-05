@@ -1,5 +1,5 @@
 import { CATEGORIES, Category, PAYER_IDS, PayerId } from "./schema";
-import { exec, query } from "./sqlite";
+import { exec, getDB, query } from "./sqlite";
 
 export interface ExpenseRow {
   id: string;
@@ -251,4 +251,120 @@ export async function resetDatabase(): Promise<void> {
 
   // Reset dirty flag table if it exists (for future sync)
   // await exec(`DELETE FROM sync_queue`); // Future: when sync is implemented
+}
+
+/**
+ * Validates whether the provided value conforms to the DatabaseExport structure.
+ * This function checks the integrity and types of all fields, ensuring the data matches
+ * the expected schema for database import/export operations.
+ *
+ * @param value - The value to validate, typically parsed from an external source (e.g., JSON).
+ * @returns True if the value is a valid DatabaseExport object; otherwise, false.
+ */
+export function isValidDatabaseExport(value: unknown): value is DatabaseExport {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Partial<DatabaseExport> & {
+    expenses?: Array<Partial<ExpenseRow>>;
+  };
+
+  if (
+    typeof candidate.exportedAt !== "string" ||
+    typeof candidate.appVersion !== "string" ||
+    typeof candidate.totalExpenses !== "number" ||
+    !Array.isArray(candidate.expenses)
+  ) {
+    return false;
+  }
+
+  if (candidate.totalExpenses !== candidate.expenses.length) {
+    return false;
+  }
+
+  for (const expense of candidate.expenses) {
+    if (!expense || typeof expense !== "object") {
+      return false;
+    }
+
+    if (
+      typeof expense.id !== "string" ||
+      typeof expense.amount_cents !== "number" ||
+      typeof expense.date !== "string" ||
+      typeof expense.category !== "string" ||
+      typeof expense.created_at !== "string" ||
+      typeof expense.updated_at !== "string" ||
+      typeof expense.paid_by !== "string"
+    ) {
+      return false;
+    }
+
+    if (
+      expense.note != null &&
+      typeof expense.note !== "string"
+    ) {
+      return false;
+    }
+
+    if (!CATEGORIES.includes(expense.category as Category)) {
+      return false;
+    }
+
+    if (!PAYER_IDS.includes(expense.paid_by as PayerId)) {
+      return false;
+    }
+
+    if (expense.deleted !== 0 && expense.deleted !== 1) {
+      return false;
+    }
+
+    if (expense.dirty !== 0 && expense.dirty !== 1) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Imports the given database export by replacing all existing expenses.
+ * 
+ * **Warning:** This is a destructive operation. All existing expenses in the database
+ * will be permanently deleted before importing the new data. Use with caution.
+ *
+ * @param data The database export to import.
+ */
+export async function importDatabase(data: DatabaseExport): Promise<void> {
+  const db = await getDB();
+
+  await db.withTransactionAsync(async () => {
+    await db.execAsync(`DELETE FROM expenses`);
+
+    if (data.expenses.length === 0) {
+      return;
+    }
+
+    const insertSql = `
+      INSERT INTO expenses (
+        id, amount_cents, paid_by, date, note, category,
+        created_at, updated_at, deleted, dirty
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    for (const expense of data.expenses) {
+      await db.runAsync(insertSql, [
+        expense.id,
+        expense.amount_cents,
+        expense.paid_by,
+        expense.date,
+        expense.note ?? null,
+        expense.category,
+        expense.created_at,
+        expense.updated_at,
+        expense.deleted,
+        expense.dirty ?? 0,
+      ]);
+    }
+  });
 }
