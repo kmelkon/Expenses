@@ -189,14 +189,26 @@ const MIGRATIONS: Migration[] = [
           deleted INTEGER NOT NULL DEFAULT 0,
           dirty INTEGER NOT NULL DEFAULT 0,
           FOREIGN KEY (paid_by) REFERENCES payers(id),
-          FOREIGN KEY (category) REFERENCES categories(name)
+          FOREIGN KEY (category) REFERENCES categories(id)
         );
       `);
 
-      // Copy existing data
+      // Copy existing data, mapping category names to category ids
       await db.execAsync(`
-        INSERT INTO expenses_new 
-        SELECT * FROM expenses;
+        INSERT INTO expenses_new (id, amount_cents, paid_by, date, note, category, created_at, updated_at, deleted, dirty)
+        SELECT 
+          e.id,
+          e.amount_cents,
+          e.paid_by,
+          e.date,
+          e.note,
+          c.id as category,
+          e.created_at,
+          e.updated_at,
+          e.deleted,
+          e.dirty
+        FROM expenses e
+        JOIN categories c ON e.category = c.name;
       `);
 
       // Drop old table and rename new one
