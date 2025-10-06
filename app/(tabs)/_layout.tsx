@@ -4,7 +4,8 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: true,
+        headerShown: false, // Let each tab manage its own header
+        tabBarStyle: { display: "none" }, // Hide default tab bar - we use custom BottomNav
         headerStyle: {
           backgroundColor: "#007AFF",
         },
@@ -12,13 +13,13 @@ export default function TabsLayout() {
         headerTitleStyle: {
           fontWeight: "600",
         },
-        tabBarStyle: { display: "none" }, // Hide default tab bar - we use custom BottomNav
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: "Expenses",
+          headerShown: true, // Show header for Home screen
         }}
       />
       <Tabs.Screen

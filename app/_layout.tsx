@@ -1,14 +1,12 @@
-import { Stack, usePathname } from "expo-router";
+import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import BottomNav from "../src/components/BottomNav";
 import { getDB } from "../src/db/sqlite";
 import { useSettingsStore } from "../src/store/useSettingsStore";
 
 export default function RootLayout() {
-  const pathname = usePathname();
   const loadSettings = useSettingsStore((state) => state.loadSettings);
 
   useEffect(() => {
@@ -28,10 +26,6 @@ export default function RootLayout() {
 
     initializeApp().catch(console.error);
   }, [loadSettings]);
-
-  // Hide bottom nav on add and edit modals
-  const shouldShowBottomNav =
-    !pathname.startsWith("/add") && !pathname.startsWith("/edit");
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -72,7 +66,6 @@ export default function RootLayout() {
             }}
           />
         </Stack>
-        {shouldShowBottomNav && <BottomNav />}
       </View>
     </GestureHandlerRootView>
   );

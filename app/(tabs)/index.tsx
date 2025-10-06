@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import Swipeable from "react-native-gesture-handler/Swipeable";
+import BottomNav from "../../src/components/BottomNav";
 import { PayerChip } from "../../src/components/PayerChip";
 import { TotalsTables } from "../../src/components/TotalsTables";
 import { ExpenseRow, deleteExpense } from "../../src/db/expenseRepo";
@@ -183,6 +184,9 @@ export default function Index() {
           showsVerticalScrollIndicator={false}
         />
       )}
+
+      {/* Bottom Navigation */}
+      <BottomNav />
     </View>
   );
 }
