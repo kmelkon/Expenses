@@ -123,7 +123,7 @@ export async function getMonthSummary(yyyyMM: string): Promise<MonthSummary> {
   );
 
   // Get totals by category and person
-  const rawTotalsByCategory = await query<CategoryPersonTotal>(
+  const totalsByCategory = await query<CategoryPersonTotal>(
     `
     SELECT category, paid_by, SUM(amount_cents) as total
     FROM expenses
@@ -136,37 +136,19 @@ export async function getMonthSummary(yyyyMM: string): Promise<MonthSummary> {
     [startDate, endDate]
   );
 
-  // Normalize category × person matrix to include zeros for missing combinations
-  const totalsByCategoryMap = new Map<string, CategoryPersonTotal>();
-  for (const row of rawTotalsByCategory) {
-    const key = `${row.category}|${row.paid_by}`;
-    totalsByCategoryMap.set(key, row);
-  }
-
-  const totalsByCategory: CategoryPersonTotal[] = [];
-  for (const category of CATEGORIES) {
-    for (const payerId of PAYER_IDS) {
-      const key = `${category}|${payerId}`;
-      const existing = totalsByCategoryMap.get(key);
-      totalsByCategory.push(
-        existing || { category, paid_by: payerId, total: 0 }
-      );
-    }
-  }
-
-  // Calculate grand total and individual totals
+  // Calculate grand total
   const grandTotal = totalsByPerson.reduce((sum, item) => sum + item.total, 0);
-  const youTotal =
-    totalsByPerson.find((item) => item.paid_by === "you")?.total || 0;
-  const partnerTotal =
-    totalsByPerson.find((item) => item.paid_by === "partner")?.total || 0;
+  const hubbyTotal =
+    totalsByPerson.find((item) => item.paid_by === "hubby")?.total || 0;
+  const wifeyTotal =
+    totalsByPerson.find((item) => item.paid_by === "wifey")?.total || 0;
 
   return {
     totalsByPerson,
     totalsByCategory,
     grandTotal,
-    youTotal,
-    partnerTotal,
+    youTotal: hubbyTotal,
+    partnerTotal: wifeyTotal,
   };
 }
 
@@ -229,19 +211,25 @@ export interface DatabaseExport {
   appVersion: string;
   totalExpenses: number;
   expenses: ExpenseRow[];
+  categories?: CategoryRow[];
+  payers?: PayerRow[];
 }
 
 export async function exportDatabase(): Promise<DatabaseExport> {
   // Get ALL expenses including deleted ones
-  const allExpenses = await query<ExpenseRow>(
-    `SELECT * FROM expenses ORDER BY created_at DESC`
-  );
+  const [allExpenses, categories, payers] = await Promise.all([
+    query<ExpenseRow>(`SELECT * FROM expenses ORDER BY created_at DESC`),
+    query<CategoryRow>(`SELECT * FROM categories ORDER BY display_order ASC`),
+    query<PayerRow>(`SELECT * FROM payers ORDER BY created_at ASC, id ASC`),
+  ]);
 
   return {
     exportedAt: new Date().toISOString(),
     appVersion: require("../../app.json").expo.version,
     totalExpenses: allExpenses.length,
     expenses: allExpenses,
+    categories,
+    payers,
   };
 }
 
@@ -267,14 +255,19 @@ export function isValidDatabaseExport(value: unknown): value is DatabaseExport {
   }
 
   const candidate = value as Partial<DatabaseExport> & {
-    expenses?: Array<Partial<ExpenseRow>>;
+    expenses?: Partial<ExpenseRow>[];
+    categories?: Partial<CategoryRow>[];
+    payers?: Partial<PayerRow>[];
   };
 
   if (
     typeof candidate.exportedAt !== "string" ||
     typeof candidate.appVersion !== "string" ||
     typeof candidate.totalExpenses !== "number" ||
-    !Array.isArray(candidate.expenses)
+    !Array.isArray(candidate.expenses) ||
+    (candidate.categories !== undefined &&
+      !Array.isArray(candidate.categories)) ||
+    (candidate.payers !== undefined && !Array.isArray(candidate.payers))
   ) {
     return false;
   }
@@ -300,20 +293,13 @@ export function isValidDatabaseExport(value: unknown): value is DatabaseExport {
       return false;
     }
 
-    if (
-      expense.note != null &&
-      typeof expense.note !== "string"
-    ) {
+    if (expense.note != null && typeof expense.note !== "string") {
       return false;
     }
 
-    if (!CATEGORIES.includes(expense.category as Category)) {
-      return false;
-    }
-
-    if (!PAYER_IDS.includes(expense.paid_by as PayerId)) {
-      return false;
-    }
+    // Note: We don't validate against specific categories/payers anymore
+    // since they are now dynamic and stored in the database.
+    // The foreign key constraints will handle validation on import.
 
     if (expense.deleted !== 0 && expense.deleted !== 1) {
       return false;
@@ -324,47 +310,250 @@ export function isValidDatabaseExport(value: unknown): value is DatabaseExport {
     }
   }
 
+  const categories = candidate.categories ?? [];
+  for (const category of categories) {
+    if (!category || typeof category !== "object") {
+      return false;
+    }
+
+    if (
+      typeof category.id !== "string" ||
+      typeof category.name !== "string" ||
+      typeof category.display_order !== "number" ||
+      typeof category.created_at !== "string"
+    ) {
+      return false;
+    }
+  }
+
+  const payers = candidate.payers ?? [];
+  for (const payer of payers) {
+    if (!payer || typeof payer !== "object") {
+      return false;
+    }
+
+    if (
+      typeof payer.id !== "string" ||
+      typeof payer.display_name !== "string" ||
+      typeof payer.created_at !== "string"
+    ) {
+      return false;
+    }
+  }
+
   return true;
 }
 
 /**
  * Imports the given database export by replacing all existing expenses.
- * 
+ *
  * **Warning:** This is a destructive operation. All existing expenses in the database
  * will be permanently deleted before importing the new data. Use with caution.
  *
  * @param data The database export to import.
  */
+const FALLBACK_PAYER_NAMES: Record<string, string> = {
+  hubby: "Karam",
+  wifey: "Kazi",
+};
+
+function buildDefaultCategoryRows(): CategoryRow[] {
+  const now = new Date().toISOString();
+
+  return CATEGORIES.map((name, index) => ({
+    id: name.toLowerCase().replace(/\s+/g, "_"),
+    name,
+    display_order: index,
+    created_at: now,
+  }));
+}
+
+function buildDefaultPayerRows(): PayerRow[] {
+  return PAYER_IDS.map((id, index) => ({
+    id,
+    display_name: FALLBACK_PAYER_NAMES[id] ?? id,
+    created_at: new Date(Date.now() + index).toISOString(),
+  }));
+}
+
 export async function importDatabase(data: DatabaseExport): Promise<void> {
   const db = await getDB();
+  const categories =
+    data.categories !== undefined ? data.categories : buildDefaultCategoryRows();
+  const payers =
+    data.payers !== undefined ? data.payers : buildDefaultPayerRows();
 
   await db.withTransactionAsync(async () => {
     await db.execAsync(`DELETE FROM expenses`);
+    await db.execAsync(`DELETE FROM categories`);
+    await db.execAsync(`DELETE FROM payers`);
 
-    if (data.expenses.length === 0) {
-      return;
+    if (categories.length > 0) {
+      const insertCategorySql = `
+        INSERT INTO categories (id, name, display_order, created_at)
+        VALUES (?, ?, ?, ?)
+      `;
+
+      for (const category of categories) {
+        await db.runAsync(insertCategorySql, [
+          category.id,
+          category.name,
+          category.display_order,
+          category.created_at,
+        ]);
+      }
     }
 
-    const insertSql = `
-      INSERT INTO expenses (
-        id, amount_cents, paid_by, date, note, category,
-        created_at, updated_at, deleted, dirty
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
+    if (payers.length > 0) {
+      const insertPayerSql = `
+        INSERT INTO payers (id, display_name, created_at)
+        VALUES (?, ?, ?)
+      `;
 
-    for (const expense of data.expenses) {
-      await db.runAsync(insertSql, [
-        expense.id,
-        expense.amount_cents,
-        expense.paid_by,
-        expense.date,
-        expense.note ?? null,
-        expense.category,
-        expense.created_at,
-        expense.updated_at,
-        expense.deleted,
-        expense.dirty ?? 0,
-      ]);
+      for (const payer of payers) {
+        await db.runAsync(insertPayerSql, [
+          payer.id,
+          payer.display_name,
+          payer.created_at,
+        ]);
+      }
+    }
+
+    if (data.expenses.length > 0) {
+      const insertSql = `
+        INSERT INTO expenses (
+          id, amount_cents, paid_by, date, note, category,
+          created_at, updated_at, deleted, dirty
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+
+      for (const expense of data.expenses) {
+        await db.runAsync(insertSql, [
+          expense.id,
+          expense.amount_cents,
+          expense.paid_by,
+          expense.date,
+          expense.note ?? null,
+          expense.category,
+          expense.created_at,
+          expense.updated_at,
+          expense.deleted,
+          expense.dirty ?? 0,
+        ]);
+      }
     }
   });
+}
+
+// ============================================================================
+// CATEGORIES
+// ============================================================================
+
+export interface CategoryRow {
+  id: string;
+  name: string;
+  display_order: number;
+  created_at: string;
+}
+
+export async function getAllCategories(): Promise<CategoryRow[]> {
+  return await query<CategoryRow>(
+    `SELECT * FROM categories ORDER BY display_order ASC`
+  );
+}
+
+export async function addCategory(name: string): Promise<void> {
+  // Get the highest display_order to append at the end
+  const rows = await query<{ max_order: number }>(
+    `SELECT COALESCE(MAX(display_order), -1) as max_order FROM categories`
+  );
+  const nextOrder = (rows[0]?.max_order ?? -1) + 1;
+
+  const id = name.toLowerCase().replace(/\s+/g, "_");
+  await exec(
+    `INSERT INTO categories (id, name, display_order) VALUES (?, ?, ?)`,
+    [id, name, nextOrder]
+  );
+}
+
+export async function deleteCategory(name: string): Promise<void> {
+  // Check if category is in use
+  const expenses = await query<{ count: number }>(
+    `SELECT COUNT(*) as count FROM expenses WHERE category = ? AND deleted = 0`,
+    [name]
+  );
+
+  if (expenses[0]?.count > 0) {
+    throw new Error(
+      `Cannot delete category "${name}" - it is used by ${expenses[0].count} expense(s)`
+    );
+  }
+
+  await exec(`DELETE FROM categories WHERE name = ?`, [name]);
+}
+
+export async function updateCategoryOrder(
+  updates: { name: string; display_order: number }[]
+): Promise<void> {
+  const db = await getDB();
+  await db.withTransactionAsync(async () => {
+    for (const update of updates) {
+      await db.runAsync(
+        `UPDATE categories SET display_order = ? WHERE name = ?`,
+        [update.display_order, update.name]
+      );
+    }
+  });
+}
+
+// ============================================================================
+// PAYERS
+// ============================================================================
+
+export interface PayerRow {
+  id: string;
+  display_name: string;
+  created_at: string;
+}
+
+export async function getAllPayers(): Promise<PayerRow[]> {
+  return await query<PayerRow>(`SELECT * FROM payers ORDER BY id ASC`);
+}
+
+export async function addPayer(id: string, displayName: string): Promise<void> {
+  // Validate ID format (lowercase, no spaces)
+  if (!/^[a-z_]+$/.test(id)) {
+    throw new Error("Payer ID must be lowercase letters and underscores only");
+  }
+
+  await exec(`INSERT INTO payers (id, display_name) VALUES (?, ?)`, [
+    id,
+    displayName,
+  ]);
+}
+
+export async function updatePayerDisplayName(
+  id: string,
+  displayName: string
+): Promise<void> {
+  await exec(`UPDATE payers SET display_name = ? WHERE id = ?`, [
+    displayName,
+    id,
+  ]);
+}
+
+export async function deletePayer(id: string): Promise<void> {
+  // Check if payer is in use
+  const expenses = await query<{ count: number }>(
+    `SELECT COUNT(*) as count FROM expenses WHERE paid_by = ? AND deleted = 0`,
+    [id]
+  );
+
+  if (expenses[0]?.count > 0) {
+    throw new Error(
+      `Cannot delete payer "${id}" - it is used by ${expenses[0].count} expense(s)`
+    );
+  }
+
+  await exec(`DELETE FROM payers WHERE id = ?`, [id]);
 }

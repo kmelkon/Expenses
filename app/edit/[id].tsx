@@ -238,14 +238,14 @@ export default function EditExpense() {
               style={[
                 styles.segmentButton,
                 styles.segmentButtonLeft,
-                paidBy === "you" && styles.segmentButtonActive,
+                paidBy === "hubby" && styles.segmentButtonActive,
               ]}
-              onPress={() => setPaidBy("you")}
+              onPress={() => setPaidBy("hubby")}
             >
               <Text
                 style={[
                   styles.segmentButtonText,
-                  paidBy === "you" && styles.segmentButtonTextActive,
+                  paidBy === "hubby" && styles.segmentButtonTextActive,
                 ]}
               >
                 Karam
@@ -255,14 +255,14 @@ export default function EditExpense() {
               style={[
                 styles.segmentButton,
                 styles.segmentButtonRight,
-                paidBy === "partner" && styles.segmentButtonActive,
+                paidBy === "wifey" && styles.segmentButtonActive,
               ]}
-              onPress={() => setPaidBy("partner")}
+              onPress={() => setPaidBy("wifey")}
             >
               <Text
                 style={[
                   styles.segmentButtonText,
-                  paidBy === "partner" && styles.segmentButtonTextActive,
+                  paidBy === "wifey" && styles.segmentButtonTextActive,
                 ]}
               >
                 Kazi

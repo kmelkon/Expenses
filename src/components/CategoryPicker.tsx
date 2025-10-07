@@ -8,7 +8,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { CATEGORIES, Category } from "../db/schema";
+import { Category } from "../db/schema";
+import { useCategories } from "../store/useSettingsStore";
 
 interface CategoryPickerProps {
   selectedCategory: Category | null;
@@ -23,6 +24,7 @@ export function CategoryPicker({
 }: CategoryPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const insets = useSafeAreaInsets();
+  const categories = useCategories();
 
   const handleSelect = (category: Category) => {
     onSelect(category);
@@ -75,23 +77,24 @@ export function CategoryPicker({
               style={styles.categoryList}
               showsVerticalScrollIndicator={true}
             >
-              {CATEGORIES.map((category) => (
+              {categories.map((category) => (
                 <TouchableOpacity
-                  key={category}
+                  key={category.id}
                   style={[
                     styles.categoryItem,
-                    selectedCategory === category && styles.selectedCategory,
+                    selectedCategory === category.name &&
+                      styles.selectedCategory,
                   ]}
-                  onPress={() => handleSelect(category)}
+                  onPress={() => handleSelect(category.name)}
                 >
                   <Text
                     style={[
                       styles.categoryText,
-                      selectedCategory === category &&
+                      selectedCategory === category.name &&
                         styles.selectedCategoryText,
                     ]}
                   >
-                    {category}
+                    {category.name}
                   </Text>
                 </TouchableOpacity>
               ))}

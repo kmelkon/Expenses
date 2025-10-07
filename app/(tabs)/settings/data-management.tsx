@@ -1,35 +1,27 @@
-import Constants from "expo-constants";
 import * as DocumentPicker from "expo-document-picker";
 import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Alert,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import type { DatabaseExport } from "../../src/db/expenseRepo";
+import type { DatabaseExport } from "../../../src/db/expenseRepo";
 import {
   exportDatabase,
   importDatabase,
   isValidDatabaseExport,
-  resetDatabase,
-} from "../../src/db/expenseRepo";
-import { useMonthStore } from "../../src/store/useMonthStore";
+} from "../../../src/db/expenseRepo";
+import { useMonthStore } from "../../../src/store/useMonthStore";
 
-export default function Settings() {
+export default function DataManagement() {
   const { resetToCurrentMonth, loadMonthData } = useMonthStore();
   const [isExporting, setIsExporting] = useState(false);
-  const [isResetting, setIsResetting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
-
-  const appVersion = Constants.expoConfig?.version ?? "0.0.1";
-  const platform = Platform.OS === "ios" ? "iOS" : "Android";
-  const isDev = __DEV__;
 
   const handleExportData = async () => {
     setIsExporting(true);
@@ -155,81 +147,10 @@ export default function Settings() {
     }
   };
 
-  const handleResetDatabase = () => {
-    Alert.alert(
-      "Reset Database",
-      "Are you sure you want to delete ALL expenses? This cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Reset",
-          style: "destructive",
-          onPress: () => {
-            Alert.alert(
-              "Final Confirmation",
-              "This will permanently delete all your expense data. Continue?",
-              [
-                { text: "Cancel", style: "cancel" },
-                {
-                  text: "Delete Everything",
-                  style: "destructive",
-                  onPress: async () => {
-                    setIsResetting(true);
-                    try {
-                      await resetDatabase();
-
-                      // Optionally re-seed in dev mode
-                      if (__DEV__ && process.env.EXPO_PUBLIC_SEED === "1") {
-                        const { getDB } = await import("../../src/db/sqlite");
-                        const { seed } = await import("../../src/dev/seed");
-                        const db = await getDB();
-                        await seed(db);
-                      }
-
-                      resetToCurrentMonth();
-                      await loadMonthData();
-
-                      Alert.alert("Success", "Database has been reset");
-                    } catch (error) {
-                      console.error("Reset failed:", error);
-                      Alert.alert("Error", "Failed to reset database");
-                    } finally {
-                      setIsResetting(false);
-                    }
-                  },
-                },
-              ]
-            );
-          },
-        },
-      ]
-    );
-  };
-
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* App Information Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>App Information</Text>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Version</Text>
-          <Text style={styles.infoValue}>{appVersion}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Platform</Text>
-          <Text style={styles.infoValue}>{platform}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>Environment</Text>
-          <Text style={styles.infoValue}>
-            {isDev ? "Development" : "Production"}
-          </Text>
-        </View>
-      </View>
-
-      {/* Data Export Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Data Management</Text>
+        <Text style={styles.sectionTitle}>Export Data</Text>
 
         <TouchableOpacity
           style={styles.button}
@@ -244,6 +165,10 @@ export default function Settings() {
         <Text style={styles.helpText}>
           Export all your expense data as a JSON file for backup or analysis
         </Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Import Data</Text>
 
         <TouchableOpacity
           style={styles.button}
@@ -260,27 +185,6 @@ export default function Settings() {
           expenses.
         </Text>
       </View>
-
-      {/* Database Reset Section (Dev Only) */}
-      {__DEV__ && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Developer Tools</Text>
-
-          <TouchableOpacity
-            style={[styles.button, styles.dangerButton]}
-            onPress={handleResetDatabase}
-            disabled={isResetting}
-          >
-            <Text style={[styles.buttonText, styles.dangerButtonText]}>
-              {isResetting ? "Resetting..." : "Reset Database"}
-            </Text>
-          </TouchableOpacity>
-
-          <Text style={[styles.helpText, styles.dangerText]}>
-            ⚠️ This will permanently delete all expenses
-          </Text>
-        </View>
-      )}
     </ScrollView>
   );
 }
@@ -310,22 +214,6 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: 16,
   },
-  infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 8,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#E0E0E0",
-  },
-  infoLabel: {
-    fontSize: 16,
-    color: "#666",
-  },
-  infoValue: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#333",
-  },
   button: {
     backgroundColor: "#007AFF",
     borderRadius: 8,
@@ -338,19 +226,10 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "white",
   },
-  dangerButton: {
-    backgroundColor: "#FF3B30",
-  },
-  dangerButtonText: {
-    color: "white",
-  },
   helpText: {
     fontSize: 14,
     color: "#666",
     marginTop: 4,
     lineHeight: 20,
-  },
-  dangerText: {
-    color: "#FF3B30",
   },
 });

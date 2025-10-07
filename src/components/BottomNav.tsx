@@ -17,7 +17,7 @@ export default function BottomNav() {
   const handleHomePress = () => {
     // Only navigate if not already on home
     if (!isHomeActive) {
-      router.navigate("/(tabs)/");
+      router.navigate("/(tabs)");
     }
   };
 
@@ -34,7 +34,9 @@ export default function BottomNav() {
   };
 
   return (
-    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+    <View
+      style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}
+    >
       {/* Home/Expenses Tab */}
       <TouchableOpacity
         style={styles.tab}

@@ -10,8 +10,8 @@ A minimal expense-tracking app for two people (Karam + Kazi) built with React Na
   - Monthly totals by person
   - Category breakdown showing spending by person and category
 - **Local Storage**: Uses SQLite for local-only storage (sync-ready schema for future)
-- **Hardcoded Users**: Karam (you) and Kazi (partner)
-- **Predefined Categories**: Groceries, Rent, Mortgage, Electricity, etc.
+- **Configurable Categories & Payers**: Manage categories and payers through the Settings screen (no code changes required!)
+- **Data Import/Export**: Backup and restore your expense data via JSON files
 
 ## Tech Stack
 
@@ -87,20 +87,47 @@ The app can seed sample expenses for testing in development mode. To enable seed
 
 #### Database Schema
 
+**Note**: As of v2, categories and payers are now stored in the database and configurable via the Settings screen.
+
 ```sql
+-- Expenses table
 CREATE TABLE expenses (
   id TEXT PRIMARY KEY,                 -- UUID
   amount_cents INTEGER NOT NULL,      -- Money stored as cents
-  paid_by TEXT NOT NULL,              -- 'you' or 'partner'
+  paid_by TEXT NOT NULL,              -- References payers(id)
   date TEXT NOT NULL,                 -- 'YYYY-MM-DD'
   note TEXT NULL,                     -- Optional note
-  category TEXT NOT NULL,             -- From predefined categories
+  category TEXT NOT NULL,             -- References categories(name)
   created_at TEXT NOT NULL,           -- ISO timestamp
   updated_at TEXT NOT NULL,           -- ISO timestamp
   deleted INTEGER NOT NULL DEFAULT 0, -- Soft delete flag
-  dirty INTEGER NOT NULL DEFAULT 0    -- Sync flag for future use
+  dirty INTEGER NOT NULL DEFAULT 0,   -- Sync flag for future use
+  FOREIGN KEY (paid_by) REFERENCES payers(id),
+  FOREIGN KEY (category) REFERENCES categories(name)
+);
+
+-- Categories table (configurable via Settings)
+CREATE TABLE categories (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,
+  display_order INTEGER NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Payers table (configurable via Settings)
+CREATE TABLE payers (
+  id TEXT PRIMARY KEY,
+  display_name TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 ```
+
+**Default Categories**: Groceries, Rent, Mortgage, Electricity, Electricity network, Garbage collection, Internet, Bensin, House insurance, Car insurance, Eating out, Kid
+
+**Default Payers**:
+
+- `hubby` (Karam)
+- `wifey` (Kazi)
 
 ## Building for Production
 
@@ -136,27 +163,33 @@ The APK will be available for download from the EAS build dashboard.
 
 ```text
 app/
-  _layout.tsx         # Root navigation layout
-  index.tsx          # Monthly Summary screen
-  add.tsx            # Add Expense screen
+  (tabs)/
+    index.tsx        # Monthly Summary screen (Home)
+    settings.tsx     # Settings screen (Categories & Payers management)
+  _layout.tsx        # Root navigation layout
+  add.tsx            # Add Expense modal
+  edit/
+    [id].tsx         # Edit Expense modal
 
 src/
   db/
-    sqlite.ts        # Database setup and helpers
-    expenseRepo.ts   # Expense CRUD operations
+    sqlite.ts        # Database setup, migrations, and helpers
+    expenseRepo.ts   # Expense CRUD + category/payer operations
+    schema.ts        # TypeScript types for database entities
 
   store/
-    useMonthStore.ts # Zustand store for month state
+    useMonthStore.ts      # Zustand store for month navigation
+    useSettingsStore.ts   # Zustand store for categories/payers
 
   utils/
-    money.ts         # Money formatting utilities
+    money.ts         # Money formatting utilities (SEK)
     date.ts          # Date handling utilities
-    seedData.ts      # Development seed data
 
   components/
-    PayerChip.tsx      # User badge component
-    CategoryPicker.tsx # Category selection modal
-    TotalsTables.tsx   # Summary tables component
+    PayerChip.tsx        # User badge component
+    CategoryPicker.tsx   # Category selection modal
+    TotalsTables.tsx     # Summary tables component
+    BottomNav.tsx        # Bottom navigation bar
 ```
 
 ## Usage
@@ -178,23 +211,52 @@ src/
 - See **category breakdown** in a detailed table
 - Browse the **expense list** for the selected month
 
+### Managing Categories and Payers
+
+Navigate to the **Settings** tab to customize categories and payers:
+
+#### Categories
+
+- **View all categories** in display order
+- **Add new categories** - just enter a name and tap "Add"
+- **Delete categories** - tap the delete button (only allowed if no expenses use that category)
+- Categories are instantly available in the expense entry form
+
+#### Payers
+
+- **View all payers** with their ID and display name
+- **Add new payers** - enter a unique ID (lowercase, e.g., "john") and display name
+- **Edit display names** - tap "Edit" to change how a payer's name appears
+- **Delete payers** - tap "Delete" (only allowed if no expenses use that payer)
+- The payer ID is used internally and cannot be changed once created
+
+**Important**: Deleting a category or payer is only allowed if no expenses reference it. This prevents data integrity issues.
+
 ## Data Model
 
-- **Users**: Hardcoded as 'you' (Karam) and 'partner' (Kazi)
-- **Categories**: Fixed list of common expense categories
+- **Categories**: Dynamically managed via Settings screen, stored in database
+- **Payers**: Dynamically managed via Settings screen, stored in database
 - **Currency**: All amounts in SEK, stored as integer cents
 - **Dates**: ISO format (YYYY-MM-DD)
 - **Storage**: Local SQLite database, schema prepared for future sync
 
-## Future Enhancements (v1+)
+## Implemented Features (v2)
+
+✅ **Configurable Categories** - Add, delete, and reorder categories without code changes  
+✅ **Configurable Payers** - Add, edit, and delete payers through the UI  
+✅ **Data Export/Import** - Backup and restore via JSON files  
+✅ **Database Migrations** - Automatic schema upgrades on app start
+
+## Future Enhancements
 
 - Cloud sync and backup
-- Export to CSV
+- Export to CSV/Excel
 - Charts and analytics
-- Custom categories
 - Multiple currencies
 - Receipt attachments
 - Push notifications
+- Recurring expenses
+- Budget tracking
 
 ## License
 

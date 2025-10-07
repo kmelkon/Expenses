@@ -118,13 +118,136 @@ const MIGRATIONS: Migration[] = [
       `);
     },
   },
-  // Future migrations go here:
-  // {
-  //   toVersion: 2,
-  //   up: async (db) => {
-  //     await db.execAsync('ALTER TABLE expenses ADD COLUMN new_field TEXT;');
-  //   },
-  // },
+  {
+    toVersion: 2,
+    up: async (db) => {
+      // Create categories table
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS categories (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL UNIQUE,
+          display_order INTEGER NOT NULL,
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+      `);
+
+      // Seed default categories
+      const defaultCategories = [
+        "Groceries",
+        "Rent",
+        "Mortgage",
+        "Electricity",
+        "Electricity network",
+        "Garbage collection",
+        "Internet",
+        "Bensin",
+        "House insurance",
+        "Car insurance",
+        "Eating out",
+        "Kid",
+      ];
+
+      for (let i = 0; i < defaultCategories.length; i++) {
+        const category = defaultCategories[i];
+        await db.runAsync(
+          `INSERT INTO categories (id, name, display_order) VALUES (?, ?, ?)`,
+          [category.toLowerCase().replace(/\s+/g, "_"), category, i]
+        );
+      }
+
+      // Create payers table
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS payers (
+          id TEXT PRIMARY KEY,
+          display_name TEXT NOT NULL,
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+      `);
+
+      // Seed default payers
+      await db.runAsync(`INSERT INTO payers (id, display_name) VALUES (?, ?)`, [
+        "hubby",
+        "Karam",
+      ]);
+      await db.runAsync(`INSERT INTO payers (id, display_name) VALUES (?, ?)`, [
+        "wifey",
+        "Kazi",
+      ]);
+
+      // Migrate expenses table to use foreign keys instead of CHECK constraints
+      // SQLite doesn't support dropping constraints, so we need to recreate the table
+      await db.execAsync(`
+        CREATE TABLE expenses_new (
+          id TEXT PRIMARY KEY,
+          amount_cents INTEGER NOT NULL,
+          paid_by TEXT NOT NULL,
+          date TEXT NOT NULL,
+          note TEXT NULL,
+          category TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          deleted INTEGER NOT NULL DEFAULT 0,
+          dirty INTEGER NOT NULL DEFAULT 0,
+          FOREIGN KEY (paid_by) REFERENCES payers(id),
+          FOREIGN KEY (category) REFERENCES categories(id)
+        );
+      `);
+
+      // Copy existing data, mapping category names to category ids
+      await db.execAsync(`
+        INSERT INTO expenses_new (id, amount_cents, paid_by, date, note, category, created_at, updated_at, deleted, dirty)
+        SELECT 
+          e.id,
+          e.amount_cents,
+          e.paid_by,
+          e.date,
+          e.note,
+          c.id as category,
+          e.created_at,
+          e.updated_at,
+          e.deleted,
+          e.dirty
+        FROM expenses e
+        JOIN categories c ON e.category = c.name;
+      `);
+
+      // Drop old table and rename new one
+      await db.execAsync(`DROP TABLE expenses;`);
+      await db.execAsync(`ALTER TABLE expenses_new RENAME TO expenses;`);
+
+      // Recreate indexes
+      await db.execAsync(`
+        CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date);
+        CREATE INDEX IF NOT EXISTS idx_expenses_paid_by ON expenses(paid_by);
+        CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category);
+      `);
+    },
+  },
+  {
+    toVersion: 3,
+    up: async (db) => {
+      // Update existing payer IDs from old naming to new naming
+      // This handles existing databases that were created before the rename
+      await db.runAsync(`UPDATE payers SET id = ? WHERE id = ?`, [
+        "hubby",
+        "you",
+      ]);
+      await db.runAsync(`UPDATE payers SET id = ? WHERE id = ?`, [
+        "wifey",
+        "partner",
+      ]);
+
+      // Update all expenses to use the new payer IDs
+      await db.runAsync(`UPDATE expenses SET paid_by = ? WHERE paid_by = ?`, [
+        "hubby",
+        "you",
+      ]);
+      await db.runAsync(`UPDATE expenses SET paid_by = ? WHERE paid_by = ?`, [
+        "wifey",
+        "partner",
+      ]);
+    },
+  },
 ];
 
 async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
@@ -138,7 +261,9 @@ async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
       if (currentVersion < migration.toVersion) {
         await migration.up(db);
         if (!Number.isSafeInteger(migration.toVersion)) {
-          throw new Error(`Invalid migration.toVersion: ${migration.toVersion}`);
+          throw new Error(
+            `Invalid migration.toVersion: ${migration.toVersion}`
+          );
         }
         await db.execAsync(`PRAGMA user_version = ${migration.toVersion};`);
         currentVersion = migration.toVersion;
