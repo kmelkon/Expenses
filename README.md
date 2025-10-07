@@ -62,28 +62,15 @@ A minimal expense-tracking app for two people (Karam + Kazi) built with React Na
 
 #### Database Seed Data
 
-The app can seed sample expenses for testing in development mode. To enable seeding:
+The developer tools screen now exposes a dedicated **Seed data** button for quickly loading realistic fixtures during development:
 
-1. **Set the environment variable**
+1. Launch the dev client with `npx expo start`.
+2. Navigate to **Settings → Developer Tools → Database**.
+3. Tap **Seed data** and confirm the prompt.
 
-   Create or edit `.env` in the project root:
+The script inserts a spread of expenses across the past several months and refreshes the current month view automatically. It leaves your configured payers and categories untouched so you can iterate on those independently. If expenses already exist, the seeding step is skipped and you'll be prompted to reset first if you want a clean slate.
 
-   ```env
-   EXPO_PUBLIC_SEED=1
-   ```
-
-2. **Start the development server**
-
-   ```bash
-   npx expo start
-   ```
-
-   Seed data will only be inserted when both conditions are met:
-
-   - Running in development mode (`__DEV__ === true`)
-   - `EXPO_PUBLIC_SEED` environment variable is set to `'1'`
-
-**Important**: Seed data will NOT run or ship in production builds. The seed logic is dynamically imported only in development, ensuring it's tree-shaken in production bundles.
+Use the existing **Reset Database** action to clear everything before seeding again.
 
 #### Database Schema
 

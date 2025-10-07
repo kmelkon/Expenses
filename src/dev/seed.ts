@@ -1,63 +1,115 @@
+import { subMonths } from "date-fns";
 import type { SQLiteDatabase } from "expo-sqlite";
 import { addExpense } from "../db/expenseRepo";
-import { getTodayYYYYMMDD } from "../utils/date";
+import {
+  formatMonthDisplay,
+  toYYYYMM,
+  toYYYYMMDD,
+} from "../utils/date";
+
+type SeedExpense = Parameters<typeof addExpense>[0];
 
 /**
- * Seeds the database with test data for development.
- * Only call this function when __DEV__ && process.env.EXPO_PUBLIC_SEED === '1'
+ * Seeds the database with richer test data for development.
  *
  * @param db - The SQLite database instance
+ * @returns Whether any expenses were inserted
  */
-export async function seed(db: SQLiteDatabase): Promise<void> {
+export async function seed(db: SQLiteDatabase): Promise<boolean> {
   try {
-    // Add some sample expenses for the current month
-    const today = getTodayYYYYMMDD();
-    const currentMonth = today.substring(0, 7); // YYYY-MM
+    const existingRows = await db.getAllAsync<{ count: number }>(
+      "SELECT COUNT(*) as count FROM expenses WHERE deleted = 0"
+    );
+    const existingCount = Number(existingRows[0]?.count ?? 0);
 
-    const sampleExpenses = [
-      {
-        amount_cents: 45000, // 450 SEK
-        paid_by: "hubby" as const,
-        date: `${currentMonth}-01`,
-        category: "Groceries" as const,
-        note: "Weekly groceries at ICA",
-      },
-      {
-        amount_cents: 1200000, // 12000 SEK
-        paid_by: "wifey" as const,
-        date: `${currentMonth}-01`,
-        category: "Rent" as const,
-        note: "Monthly rent payment",
-      },
-      {
-        amount_cents: 32000, // 320 SEK
-        paid_by: "hubby" as const,
-        date: `${currentMonth}-02`,
-        category: "Eating out" as const,
-        note: "Dinner at restaurant",
-      },
-      {
-        amount_cents: 85000, // 850 SEK
-        paid_by: "wifey" as const,
-        date: `${currentMonth}-03`,
-        category: "Electricity" as const,
-        note: "Monthly electricity bill",
-      },
-      {
-        amount_cents: 65000, // 650 SEK
-        paid_by: "hubby" as const,
-        date: today,
-        category: "Groceries" as const,
-        note: "Fresh vegetables and meat",
-      },
-    ];
+    if (existingCount > 0) {
+      console.warn(
+        `[DEV] Seed skipped: ${existingCount} expense(s) already present. Reset the database to seed again.`
+      );
+      return false;
+    }
 
-    console.log("[DEV] Seeding test data...");
-    for (const expense of sampleExpenses) {
+    const monthsToGenerate = 6;
+    const fixtures: SeedExpense[] = [];
+    const baseDate = new Date();
+
+    for (let offset = 0; offset < monthsToGenerate; offset++) {
+      const monthDate = subMonths(baseDate, offset);
+      const year = monthDate.getFullYear();
+      const month = monthDate.getMonth();
+      const yyyyMM = toYYYYMM(monthDate);
+      const displayMonth = formatMonthDisplay(yyyyMM);
+      const variation = monthsToGenerate - offset;
+      const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+
+      const buildDate = (day: number) =>
+        toYYYYMMDD(new Date(year, month, Math.min(day, lastDayOfMonth)));
+
+      fixtures.push(
+        {
+          amount_cents: 1200000,
+          paid_by: "wifey",
+          date: buildDate(1),
+          category: "Rent",
+          note: `${displayMonth} rent`,
+        },
+        {
+          amount_cents: 42000 + variation * 1200,
+          paid_by: "hubby",
+          date: buildDate(5),
+          category: "Groceries",
+          note: `${displayMonth} groceries run`,
+        },
+        {
+          amount_cents: 68000 + variation * 900,
+          paid_by: "wifey",
+          date: buildDate(12),
+          category: "Electricity",
+          note: `${displayMonth} electricity bill`,
+        },
+        {
+          amount_cents: 28000 + variation * 700,
+          paid_by: offset % 2 === 0 ? "hubby" : "wifey",
+          date: buildDate(18),
+          category: "Eating out",
+          note: `${displayMonth} date night`,
+        },
+        {
+          amount_cents: 19500 + variation * 300,
+          paid_by: "hubby",
+          date: buildDate(22),
+          category: "Kid",
+          note: `${displayMonth} activities for the kids`,
+        },
+        {
+          amount_cents: 36000 + variation * 500,
+          paid_by: offset % 2 === 0 ? "wifey" : "hubby",
+          date: buildDate(26),
+          category: "Bensin",
+          note: `${displayMonth} fuel top-up`,
+        },
+        {
+          amount_cents: 49900,
+          paid_by: "wifey",
+          date: buildDate(28),
+          category: "Internet",
+          note: `${displayMonth} fiber internet`,
+        }
+      );
+    }
+
+    console.log(
+      `[DEV] Seeding ${fixtures.length} expenses across ${monthsToGenerate} month(s)...`
+    );
+
+    for (const expense of fixtures) {
       await addExpense(expense);
     }
+
     console.log("[DEV] Test data seeded successfully!");
+    return true;
   } catch (error) {
     console.warn("[DEV] Failed to seed test data:", error);
+    throw error;
   }
 }
