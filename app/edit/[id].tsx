@@ -3,7 +3,7 @@ import DateTimePicker, {
 } from "@react-native-community/datetimepicker";
 import { format } from "date-fns";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -25,6 +25,7 @@ import {
 } from "../../src/db/expenseRepo";
 import { Category, PayerId } from "../../src/db/schema";
 import { useMonthStore } from "../../src/store/useMonthStore";
+import { usePayers } from "../../src/store/useSettingsStore";
 import { formatAmount, parseAmountInput } from "../../src/utils/money";
 
 export default function EditExpense() {
@@ -33,17 +34,42 @@ export default function EditExpense() {
   const { refreshData } = useMonthStore();
   const insets = useSafeAreaInsets();
 
+  const payers = usePayers();
+
   const [isLoadingExpense, setIsLoadingExpense] = useState(true);
   const [expense, setExpense] = useState<ExpenseRow | null>(null);
 
   const [amount, setAmount] = useState("");
   const [amountError, setAmountError] = useState("");
-  const [paidBy, setPaidBy] = useState<PayerId>("you");
+  const [paidBy, setPaidBy] = useState<PayerId>(payers[0]?.id ?? "");
   const [date, setDate] = useState("");
   const [category, setCategory] = useState<Category | null>(null);
   const [note, setNote] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+
+  useEffect(() => {
+    if (paidBy || !payers.length) {
+      return;
+    }
+
+    setPaidBy(payers[0].id);
+  }, [payers, paidBy]);
+
+  const payerOptions = useMemo(() => {
+    if (paidBy && !payers.some((payer) => payer.id === paidBy)) {
+      return [
+        ...payers,
+        {
+          id: paidBy,
+          display_name: paidBy,
+          created_at: "",
+        },
+      ];
+    }
+
+    return payers;
+  }, [payers, paidBy]);
 
   // Load expense data on mount
   useEffect(() => {
@@ -141,7 +167,12 @@ export default function EditExpense() {
       return;
     }
 
-    // Validate category
+    // Validate other fields
+    if (!paidBy) {
+      Alert.alert("Error", "Please select who paid");
+      return;
+    }
+
     if (!category) {
       Alert.alert("Error", "Please select a category");
       return;
@@ -233,42 +264,41 @@ export default function EditExpense() {
         {/* Paid By */}
         <View style={styles.section}>
           <Text style={styles.label}>Paid by</Text>
-          <View style={styles.segmentedControl}>
-            <TouchableOpacity
-              style={[
-                styles.segmentButton,
-                styles.segmentButtonLeft,
-                paidBy === "hubby" && styles.segmentButtonActive,
-              ]}
-              onPress={() => setPaidBy("hubby")}
-            >
-              <Text
-                style={[
-                  styles.segmentButtonText,
-                  paidBy === "hubby" && styles.segmentButtonTextActive,
-                ]}
-              >
-                Karam
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.segmentButton,
-                styles.segmentButtonRight,
-                paidBy === "wifey" && styles.segmentButtonActive,
-              ]}
-              onPress={() => setPaidBy("wifey")}
-            >
-              <Text
-                style={[
-                  styles.segmentButtonText,
-                  paidBy === "wifey" && styles.segmentButtonTextActive,
-                ]}
-              >
-                Kazi
-              </Text>
-            </TouchableOpacity>
-          </View>
+          {payerOptions.length === 0 ? (
+            <Text style={styles.emptyStateText}>
+              No payers found. Please add one in Settings.
+            </Text>
+          ) : (
+            <View style={styles.segmentedControl}>
+              {payerOptions.map((payer, index) => {
+                const isActive = paidBy === payer.id;
+                const buttonStyles = [styles.segmentButton];
+
+                if (index !== payerOptions.length - 1) {
+                  buttonStyles.push(styles.segmentButtonDivider);
+                }
+
+                if (isActive) {
+                  buttonStyles.push(styles.segmentButtonActive);
+                }
+
+                const textStyles = [styles.segmentButtonText];
+                if (isActive) {
+                  textStyles.push(styles.segmentButtonTextActive);
+                }
+
+                return (
+                  <TouchableOpacity
+                    key={payer.id}
+                    style={buttonStyles}
+                    onPress={() => setPaidBy(payer.id)}
+                  >
+                    <Text style={textStyles}>{payer.display_name}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
         </View>
 
         {/* Date */}
@@ -409,11 +439,10 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     alignItems: "center",
   },
-  segmentButtonLeft: {
+  segmentButtonDivider: {
     borderRightWidth: 1,
     borderRightColor: "#DDD",
   },
-  segmentButtonRight: {},
   segmentButtonActive: {
     backgroundColor: "#007AFF",
   },
@@ -424,6 +453,10 @@ const styles = StyleSheet.create({
   },
   segmentButtonTextActive: {
     color: "white",
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: "#666",
   },
   buttons: {
     flexDirection: "row",
