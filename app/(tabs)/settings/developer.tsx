@@ -13,6 +13,46 @@ import { useMonthStore } from "../../../src/store/useMonthStore";
 export default function DeveloperTools() {
   const { resetToCurrentMonth, loadMonthData } = useMonthStore();
   const [isResetting, setIsResetting] = useState(false);
+  const [isSeeding, setIsSeeding] = useState(false);
+
+  const handleSeedData = () => {
+    Alert.alert(
+      "Seed Data",
+      "Insert sample expenses across recent months? Existing categories and payers will be kept as-is.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Seed",
+          onPress: async () => {
+            setIsSeeding(true);
+            try {
+              const { getDB } = await import("../../../src/db/sqlite");
+              const { seed } = await import("../../../src/dev/seed");
+
+              const db = await getDB();
+              const didSeed = await seed(db);
+
+              if (didSeed) {
+                resetToCurrentMonth();
+                await loadMonthData();
+                Alert.alert("Success", "Sample expenses have been added.");
+              } else {
+                Alert.alert(
+                  "No changes",
+                  "Seed data was skipped because expenses already exist. Reset the database first if you want a clean seed."
+                );
+              }
+            } catch (error) {
+              console.error("Seed failed:", error);
+              Alert.alert("Error", "Failed to seed data");
+            } finally {
+              setIsSeeding(false);
+            }
+          },
+        },
+      ]
+    );
+  };
 
   const handleResetDatabase = () => {
     Alert.alert(
@@ -36,17 +76,6 @@ export default function DeveloperTools() {
                     setIsResetting(true);
                     try {
                       await resetDatabase();
-
-                      // Optionally re-seed in dev mode
-                      if (__DEV__ && process.env.EXPO_PUBLIC_SEED === "1") {
-                        const { getDB } = await import(
-                          "../../../src/db/sqlite"
-                        );
-                        const { seed } = await import("../../../src/dev/seed");
-                        const db = await getDB();
-                        await seed(db);
-                      }
-
                       resetToCurrentMonth();
                       await loadMonthData();
 
@@ -73,9 +102,13 @@ export default function DeveloperTools() {
         <Text style={styles.sectionTitle}>Database</Text>
 
         <TouchableOpacity
-          style={[styles.button, styles.dangerButton]}
+          style={[
+            styles.button,
+            styles.dangerButton,
+            (isResetting || isSeeding) && styles.disabledButton,
+          ]}
           onPress={handleResetDatabase}
-          disabled={isResetting}
+          disabled={isResetting || isSeeding}
         >
           <Text style={[styles.buttonText, styles.dangerButtonText]}>
             {isResetting ? "Resetting..." : "Reset Database"}
@@ -84,6 +117,21 @@ export default function DeveloperTools() {
 
         <Text style={[styles.helpText, styles.dangerText]}>
           ⚠️ This will permanently delete all expenses
+        </Text>
+
+        <TouchableOpacity
+          style={[styles.button, (isResetting || isSeeding) && styles.disabledButton]}
+          onPress={handleSeedData}
+          disabled={isResetting || isSeeding}
+        >
+          <Text style={styles.buttonText}>
+            {isSeeding ? "Seeding..." : "Seed Data"}
+          </Text>
+        </TouchableOpacity>
+
+        <Text style={styles.helpText}>
+          Inserts realistic sample expenses across recent months without
+          modifying categories or payers.
         </Text>
       </View>
     </ScrollView>
@@ -132,6 +180,9 @@ const styles = StyleSheet.create({
   },
   dangerButtonText: {
     color: "white",
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
   helpText: {
     fontSize: 14,
