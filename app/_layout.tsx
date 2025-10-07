@@ -16,12 +16,6 @@ export default function RootLayout() {
 
       // Load categories and payers into the settings store
       await loadSettings();
-
-      // Only seed in development when explicitly enabled
-      // if (__DEV__ && process.env.EXPO_PUBLIC_SEED === "1") {
-      //   const { seed } = await import("../src/dev/seed");
-      //   await seed(db);
-      // }
     };
 
     initializeApp().catch(console.error);
