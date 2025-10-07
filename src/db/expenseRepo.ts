@@ -1,4 +1,4 @@
-import { Category, PayerId } from "./schema";
+import { CATEGORIES, Category, PAYER_IDS, PayerId } from "./schema";
 import { exec, getDB, query } from "./sqlite";
 
 export interface ExpenseRow {
@@ -211,19 +211,25 @@ export interface DatabaseExport {
   appVersion: string;
   totalExpenses: number;
   expenses: ExpenseRow[];
+  categories?: CategoryRow[];
+  payers?: PayerRow[];
 }
 
 export async function exportDatabase(): Promise<DatabaseExport> {
   // Get ALL expenses including deleted ones
-  const allExpenses = await query<ExpenseRow>(
-    `SELECT * FROM expenses ORDER BY created_at DESC`
-  );
+  const [allExpenses, categories, payers] = await Promise.all([
+    query<ExpenseRow>(`SELECT * FROM expenses ORDER BY created_at DESC`),
+    query<CategoryRow>(`SELECT * FROM categories ORDER BY display_order ASC`),
+    query<PayerRow>(`SELECT * FROM payers ORDER BY created_at ASC, id ASC`),
+  ]);
 
   return {
     exportedAt: new Date().toISOString(),
     appVersion: require("../../app.json").expo.version,
     totalExpenses: allExpenses.length,
     expenses: allExpenses,
+    categories,
+    payers,
   };
 }
 
@@ -250,13 +256,18 @@ export function isValidDatabaseExport(value: unknown): value is DatabaseExport {
 
   const candidate = value as Partial<DatabaseExport> & {
     expenses?: Partial<ExpenseRow>[];
+    categories?: Partial<CategoryRow>[];
+    payers?: Partial<PayerRow>[];
   };
 
   if (
     typeof candidate.exportedAt !== "string" ||
     typeof candidate.appVersion !== "string" ||
     typeof candidate.totalExpenses !== "number" ||
-    !Array.isArray(candidate.expenses)
+    !Array.isArray(candidate.expenses) ||
+    (candidate.categories !== undefined &&
+      !Array.isArray(candidate.categories)) ||
+    (candidate.payers !== undefined && !Array.isArray(candidate.payers))
   ) {
     return false;
   }
@@ -299,6 +310,37 @@ export function isValidDatabaseExport(value: unknown): value is DatabaseExport {
     }
   }
 
+  const categories = candidate.categories ?? [];
+  for (const category of categories) {
+    if (!category || typeof category !== "object") {
+      return false;
+    }
+
+    if (
+      typeof category.id !== "string" ||
+      typeof category.name !== "string" ||
+      typeof category.display_order !== "number" ||
+      typeof category.created_at !== "string"
+    ) {
+      return false;
+    }
+  }
+
+  const payers = candidate.payers ?? [];
+  for (const payer of payers) {
+    if (!payer || typeof payer !== "object") {
+      return false;
+    }
+
+    if (
+      typeof payer.id !== "string" ||
+      typeof payer.display_name !== "string" ||
+      typeof payer.created_at !== "string"
+    ) {
+      return false;
+    }
+  }
+
   return true;
 }
 
@@ -310,36 +352,95 @@ export function isValidDatabaseExport(value: unknown): value is DatabaseExport {
  *
  * @param data The database export to import.
  */
+const FALLBACK_PAYER_NAMES: Record<string, string> = {
+  hubby: "Karam",
+  wifey: "Kazi",
+};
+
+function buildDefaultCategoryRows(): CategoryRow[] {
+  const now = new Date().toISOString();
+
+  return CATEGORIES.map((name, index) => ({
+    id: name.toLowerCase().replace(/\s+/g, "_"),
+    name,
+    display_order: index,
+    created_at: now,
+  }));
+}
+
+function buildDefaultPayerRows(): PayerRow[] {
+  return PAYER_IDS.map((id, index) => ({
+    id,
+    display_name: FALLBACK_PAYER_NAMES[id] ?? id,
+    created_at: new Date(Date.now() + index).toISOString(),
+  }));
+}
+
 export async function importDatabase(data: DatabaseExport): Promise<void> {
   const db = await getDB();
+  const categories =
+    data.categories !== undefined ? data.categories : buildDefaultCategoryRows();
+  const payers =
+    data.payers !== undefined ? data.payers : buildDefaultPayerRows();
 
   await db.withTransactionAsync(async () => {
     await db.execAsync(`DELETE FROM expenses`);
+    await db.execAsync(`DELETE FROM categories`);
+    await db.execAsync(`DELETE FROM payers`);
 
-    if (data.expenses.length === 0) {
-      return;
+    if (categories.length > 0) {
+      const insertCategorySql = `
+        INSERT INTO categories (id, name, display_order, created_at)
+        VALUES (?, ?, ?, ?)
+      `;
+
+      for (const category of categories) {
+        await db.runAsync(insertCategorySql, [
+          category.id,
+          category.name,
+          category.display_order,
+          category.created_at,
+        ]);
+      }
     }
 
-    const insertSql = `
-      INSERT INTO expenses (
-        id, amount_cents, paid_by, date, note, category,
-        created_at, updated_at, deleted, dirty
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
+    if (payers.length > 0) {
+      const insertPayerSql = `
+        INSERT INTO payers (id, display_name, created_at)
+        VALUES (?, ?, ?)
+      `;
 
-    for (const expense of data.expenses) {
-      await db.runAsync(insertSql, [
-        expense.id,
-        expense.amount_cents,
-        expense.paid_by,
-        expense.date,
-        expense.note ?? null,
-        expense.category,
-        expense.created_at,
-        expense.updated_at,
-        expense.deleted,
-        expense.dirty ?? 0,
-      ]);
+      for (const payer of payers) {
+        await db.runAsync(insertPayerSql, [
+          payer.id,
+          payer.display_name,
+          payer.created_at,
+        ]);
+      }
+    }
+
+    if (data.expenses.length > 0) {
+      const insertSql = `
+        INSERT INTO expenses (
+          id, amount_cents, paid_by, date, note, category,
+          created_at, updated_at, deleted, dirty
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+
+      for (const expense of data.expenses) {
+        await db.runAsync(insertSql, [
+          expense.id,
+          expense.amount_cents,
+          expense.paid_by,
+          expense.date,
+          expense.note ?? null,
+          expense.category,
+          expense.created_at,
+          expense.updated_at,
+          expense.deleted,
+          expense.dirty ?? 0,
+        ]);
+      }
     }
   });
 }
