@@ -1,15 +1,19 @@
 {
   "cli": {
-    "version": ">= 9.0.0"
+    "version": ">= 16.20.1",
+    "appVersionSource": "remote"
   },
   "build": {
-    "preview": { "android": { "buildType": "apk" } },
-    "internal": {},  // AAB for Play Internal testing
     "development": {
       "developmentClient": true,
       "distribution": "internal"
     },
-    "production": {}
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {
+      "autoIncrement": true
+    }
   },
   "submit": {
     "production": {}
