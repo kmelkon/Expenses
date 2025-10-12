@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { MonthSummary } from "../db/expenseRepo";
 import { Category } from "../db/schema";
 import { useCategories, usePayers } from "../store/useSettingsStore";
 import { formatAmount } from "../utils/money";
 import { PayerChip } from "./PayerChip";
+import { Theme, useTheme } from "../theme";
 
 interface TotalsTablesProps {
   summary: MonthSummary;
@@ -13,6 +14,8 @@ interface TotalsTablesProps {
 export function TotalsTables({ summary }: TotalsTablesProps) {
   const categories = useCategories();
   const payers = usePayers();
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   // Create a map for easy lookup of category totals by person
   const categoryTotalsMap = new Map<Category, Record<string, number>>();
@@ -169,97 +172,96 @@ export function TotalsTables({ summary }: TotalsTablesProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    gap: 20,
-    marginBottom: 20,
-  },
-  section: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 12,
-  },
-  summaryRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginBottom: 12,
-  },
-  summaryItem: {
-    alignItems: "center",
-    gap: 8,
-  },
-  summaryAmount: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#333",
-  },
-  grandTotalRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#EEE",
-  },
-  grandTotalLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-  },
-  grandTotalAmount: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#007AFF",
-  },
-  table: {
-    borderRadius: 8,
-    overflow: "hidden",
-  },
-  tableHeader: {
-    flexDirection: "row",
-    backgroundColor: "#F5F5F5",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  tableHeaderText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#666",
-  },
-  tableRow: {
-    flexDirection: "row",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
-  },
-  grandTotalTableRow: {
-    backgroundColor: "#F8F9FA",
-    borderBottomWidth: 0,
-  },
-  tableCellText: {
-    fontSize: 12,
-    color: "#333",
-  },
-  categoryColumn: {
-    flex: 2,
-  },
-  amountColumn: {
-    flex: 1,
-    textAlign: "right",
-    flexWrap: "nowrap",
-  },
-  boldText: {
-    fontWeight: "600",
-  },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      gap: theme.spacing.lg,
+      marginBottom: theme.spacing.lg,
+    },
+    section: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      padding: theme.spacing.lg,
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    sectionTitle: {
+      ...theme.typography.headingMd,
+      color: theme.colors.text,
+      marginBottom: theme.spacing.md,
+    },
+    summaryRow: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      marginBottom: theme.spacing.md,
+    },
+    summaryItem: {
+      alignItems: "center",
+      gap: theme.spacing.xs,
+    },
+    summaryAmount: {
+      ...theme.typography.bodyStrong,
+      color: theme.colors.text,
+    },
+    grandTotalRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingTop: theme.spacing.md,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: theme.colors.border,
+    },
+    grandTotalLabel: {
+      ...theme.typography.bodyStrong,
+      color: theme.colors.text,
+    },
+    grandTotalAmount: {
+      ...theme.typography.bodyStrong,
+      color: theme.colors.accent,
+    },
+    table: {
+      borderRadius: 8,
+      overflow: "hidden",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.colors.border,
+    },
+    tableHeader: {
+      flexDirection: "row",
+      backgroundColor: theme.colors.surfaceMuted,
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
+    },
+    tableHeaderText: {
+      ...theme.typography.captionStrong,
+      color: theme.colors.textSecondary,
+    },
+    tableRow: {
+      flexDirection: "row",
+      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.md,
+      backgroundColor: theme.colors.surface,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: theme.colors.border,
+    },
+    grandTotalTableRow: {
+      backgroundColor: theme.colors.surfaceMuted,
+      borderBottomWidth: 0,
+    },
+    tableCellText: {
+      ...theme.typography.caption,
+      color: theme.colors.text,
+    },
+    categoryColumn: {
+      flex: 2,
+    },
+    amountColumn: {
+      flex: 1,
+      textAlign: "right",
+      flexWrap: "nowrap",
+    },
+    boldText: {
+      fontWeight: "600",
+    },
+  });

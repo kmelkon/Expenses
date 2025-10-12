@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Modal,
   ScrollView,
@@ -10,6 +10,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Category } from "../db/schema";
 import { useCategories } from "../store/useSettingsStore";
+import { Theme, useTheme } from "../theme";
 
 interface CategoryPickerProps {
   selectedCategory: Category | null;
@@ -25,6 +26,8 @@ export function CategoryPicker({
   const [isOpen, setIsOpen] = useState(false);
   const insets = useSafeAreaInsets();
   const categories = useCategories();
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const handleSelect = (category: Category) => {
     onSelect(category);
@@ -106,69 +109,71 @@ export function CategoryPicker({
   );
 }
 
-const styles = StyleSheet.create({
-  picker: {
-    borderWidth: 1,
-    borderColor: "#DDD",
-    borderRadius: 8,
-    padding: 12,
-    backgroundColor: "white",
-  },
-  placeholder: {
-    borderColor: "#CCC",
-  },
-  pickerText: {
-    fontSize: 16,
-    color: "#333",
-  },
-  placeholderText: {
-    color: "#999",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: "white",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: "80%",
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#EEE",
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-  },
-  cancelButton: {
-    fontSize: 16,
-    color: "#007AFF",
-  },
-  categoryList: {
-    flexGrow: 0,
-  },
-  categoryItem: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
-  },
-  selectedCategory: {
-    backgroundColor: "#E3F2FD",
-  },
-  categoryText: {
-    fontSize: 16,
-    color: "#333",
-  },
-  selectedCategoryText: {
-    color: "#1565C0",
-    fontWeight: "500",
-  },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    picker: {
+      borderWidth: 1,
+      borderColor: theme.colors.borderStrong,
+      borderRadius: 8,
+      paddingVertical: theme.spacing.md,
+      paddingHorizontal: theme.spacing.md,
+      backgroundColor: theme.colors.surface,
+    },
+    placeholder: {
+      borderColor: theme.colors.border,
+    },
+    pickerText: {
+      ...theme.typography.body,
+      color: theme.colors.text,
+    },
+    placeholderText: {
+      color: theme.colors.textMuted,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "flex-end",
+    },
+    modalContent: {
+      backgroundColor: theme.colors.surfaceElevated,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      maxHeight: "80%",
+    },
+    modalHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: theme.spacing.lg,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: theme.colors.border,
+    },
+    modalTitle: {
+      ...theme.typography.headingSm,
+      color: theme.colors.text,
+    },
+    cancelButton: {
+      ...theme.typography.bodyStrong,
+      color: theme.colors.accent,
+    },
+    categoryList: {
+      flexGrow: 0,
+    },
+    categoryItem: {
+      paddingVertical: theme.spacing.md,
+      paddingHorizontal: theme.spacing.lg,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: theme.colors.border,
+    },
+    selectedCategory: {
+      backgroundColor: theme.colors.surfaceMuted,
+    },
+    categoryText: {
+      ...theme.typography.body,
+      color: theme.colors.text,
+    },
+    selectedCategoryText: {
+      color: theme.colors.accentStrong,
+      fontWeight: "600",
+    },
+  });

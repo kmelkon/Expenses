@@ -3,7 +3,7 @@ import DateTimePicker, {
 } from "@react-native-community/datetimepicker";
 import { format } from "date-fns";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -23,11 +23,14 @@ import { useMonthStore } from "../src/store/useMonthStore";
 import { usePayers } from "../src/store/useSettingsStore";
 import { getTodayYYYYMMDD } from "../src/utils/date";
 import { parseAmountInput } from "../src/utils/money";
+import { Theme, useTheme } from "../src/theme";
 
 export default function AddExpense() {
   const router = useRouter();
   const { refreshData } = useMonthStore();
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const payers = usePayers();
 
@@ -39,6 +42,7 @@ export default function AddExpense() {
   const [note, setNote] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const datePickerThemeVariant = theme.scheme === "dark" ? "dark" : "light";
 
   useEffect(() => {
     if (!payers.length) {
@@ -171,7 +175,10 @@ export default function AddExpense() {
     >
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
+        contentContainerStyle={{
+          padding: theme.spacing.lg,
+          paddingBottom: theme.spacing.xxl,
+        }}
       >
         {/* Amount */}
         <View style={styles.section}>
@@ -205,28 +212,27 @@ export default function AddExpense() {
             <View style={styles.segmentedControl}>
               {payers.map((payer, index) => {
                 const isActive = paidBy === payer.id;
-                const buttonStyles = [styles.segmentButton];
-
-                if (index !== payers.length - 1) {
-                  buttonStyles.push(styles.segmentButtonDivider);
-                }
-
-                if (isActive) {
-                  buttonStyles.push(styles.segmentButtonActive);
-                }
-
-                const textStyles = [styles.segmentButtonText];
-                if (isActive) {
-                  textStyles.push(styles.segmentButtonTextActive);
-                }
 
                 return (
                   <TouchableOpacity
                     key={payer.id}
-                    style={buttonStyles}
+                    style={[
+                      styles.segmentButton,
+                      index !== payers.length - 1
+                        ? styles.segmentButtonDivider
+                        : undefined,
+                      isActive ? styles.segmentButtonActive : undefined,
+                    ]}
                     onPress={() => setPaidBy(payer.id)}
                   >
-                    <Text style={textStyles}>{payer.display_name}</Text>
+                    <Text
+                      style={[
+                        styles.segmentButtonText,
+                        isActive ? styles.segmentButtonTextActive : undefined,
+                      ]}
+                    >
+                      {payer.display_name}
+                    </Text>
                   </TouchableOpacity>
                 );
               })}
@@ -248,6 +254,8 @@ export default function AddExpense() {
                 mode="date"
                 display="inline"
                 onChange={handleDateChange}
+                themeVariant={datePickerThemeVariant}
+                textColor={theme.colors.text}
               />
             </View>
           )}
@@ -283,7 +291,10 @@ export default function AddExpense() {
         style={[
           styles.buttons,
           {
-            paddingBottom: Math.max(insets.bottom + 12, 24),
+            paddingBottom: Math.max(
+              insets.bottom + theme.spacing.md,
+              theme.spacing.xxl,
+            ),
           },
         ]}
       >
@@ -309,123 +320,123 @@ export default function AddExpense() {
   );
 }
 
-const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-  },
-  section: {
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 8,
-  },
-  textInput: {
-    borderWidth: 1,
-    borderColor: "#DDD",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: "white",
-    color: "#333",
-  },
-  noteInput: {
-    height: 80,
-  },
-  amountInput: {
-    textAlign: "right",
-  },
-  errorInput: {
-    borderColor: "#FF3B30",
-  },
-  errorText: {
-    color: "#FF3B30",
-    fontSize: 14,
-    marginTop: 4,
-    marginLeft: 4,
-  },
-  segmentedControl: {
-    flexDirection: "row",
-    borderRadius: 8,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#DDD",
-  },
-  segmentButton: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: "white",
-    alignItems: "center",
-  },
-  segmentButtonDivider: {
-    borderRightWidth: 1,
-    borderRightColor: "#DDD",
-  },
-  segmentButtonActive: {
-    backgroundColor: "#007AFF",
-  },
-  segmentButtonText: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#333",
-  },
-  segmentButtonTextActive: {
-    color: "white",
-  },
-  emptyStateText: {
-    fontSize: 14,
-    color: "#666",
-  },
-  buttons: {
-    flexDirection: "row",
-    padding: 12,
-    backgroundColor: "white",
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#E0E0E0",
-    gap: 12,
-    marginBottom: Platform.OS === "android" ? 32 : 0,
-  },
-  button: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  cancelButton: {
-    backgroundColor: "#F0F0F0",
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-  },
-  saveButton: {
-    backgroundColor: "#007AFF",
-  },
-  saveButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "white",
-  },
-  dateButton: {
-    borderWidth: 1,
-    borderColor: "#DDD",
-    borderRadius: 8,
-    padding: 12,
-    backgroundColor: "white",
-  },
-  dateButtonText: {
-    fontSize: 16,
-    color: "#333",
-  },
-  datePickerContainer: {
-    marginTop: 8,
-    backgroundColor: "white",
-    borderRadius: 8,
-    overflow: "hidden",
-  },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    scrollView: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    section: {
+      marginBottom: theme.spacing.xxl,
+    },
+    label: {
+      ...theme.typography.headingSm,
+      color: theme.colors.text,
+      marginBottom: theme.spacing.sm,
+    },
+    textInput: {
+      borderWidth: 1,
+      borderColor: theme.colors.borderStrong,
+      borderRadius: 8,
+      padding: theme.spacing.md,
+      fontSize: 16,
+      backgroundColor: theme.colors.surface,
+      color: theme.colors.text,
+    },
+    noteInput: {
+      height: 80,
+    },
+    amountInput: {
+      textAlign: "right",
+    },
+    errorInput: {
+      borderColor: theme.colors.danger,
+    },
+    errorText: {
+      color: theme.colors.danger,
+      fontSize: 14,
+      marginTop: theme.spacing.xs,
+      marginLeft: theme.spacing.xs,
+    },
+    segmentedControl: {
+      flexDirection: "row",
+      borderRadius: 8,
+      overflow: "hidden",
+      borderWidth: 1,
+      borderColor: theme.colors.borderStrong,
+    },
+    segmentButton: {
+      flex: 1,
+      paddingVertical: theme.spacing.md,
+      paddingHorizontal: theme.spacing.lg,
+      backgroundColor: theme.colors.surface,
+      alignItems: "center",
+    },
+    segmentButtonDivider: {
+      borderRightWidth: 1,
+      borderRightColor: theme.colors.borderStrong,
+    },
+    segmentButtonActive: {
+      backgroundColor: theme.colors.accent,
+    },
+    segmentButtonText: {
+      fontSize: 16,
+      fontWeight: "500",
+      color: theme.colors.text,
+    },
+    segmentButtonTextActive: {
+      color: theme.colors.accentOn,
+    },
+    emptyStateText: {
+      fontSize: 14,
+      color: theme.colors.textSecondary,
+    },
+    buttons: {
+      flexDirection: "row",
+      padding: theme.spacing.md,
+      backgroundColor: theme.colors.surface,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: theme.colors.border,
+      gap: theme.spacing.md,
+      marginBottom: Platform.OS === "android" ? theme.spacing.xxxl : 0,
+    },
+    button: {
+      flex: 1,
+      paddingVertical: 14,
+      borderRadius: 8,
+      alignItems: "center",
+    },
+    cancelButton: {
+      backgroundColor: theme.colors.surfaceMuted,
+    },
+    cancelButtonText: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: theme.colors.text,
+    },
+    saveButton: {
+      backgroundColor: theme.colors.accent,
+    },
+    saveButtonText: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: theme.colors.accentOn,
+    },
+    dateButton: {
+      borderWidth: 1,
+      borderColor: theme.colors.borderStrong,
+      borderRadius: 8,
+      padding: theme.spacing.md,
+      backgroundColor: theme.colors.surface,
+    },
+    dateButtonText: {
+      fontSize: 16,
+      color: theme.colors.text,
+    },
+    datePickerContainer: {
+      marginTop: theme.spacing.sm,
+      backgroundColor: theme.colors.surface,
+      borderRadius: 8,
+      overflow: "hidden",
+    },
+  });

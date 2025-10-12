@@ -1,7 +1,7 @@
 import * as DocumentPicker from "expo-document-picker";
 import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -17,11 +17,14 @@ import {
   isValidDatabaseExport,
 } from "../../../src/db/expenseRepo";
 import { useMonthStore } from "../../../src/store/useMonthStore";
+import { Theme, useTheme } from "../../../src/theme";
 
 export default function DataManagement() {
   const { resetToCurrentMonth, loadMonthData } = useMonthStore();
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const handleExportData = async () => {
     setIsExporting(true);
@@ -34,7 +37,6 @@ export default function DataManagement() {
 
       // Create file in cache directory using File constructor
       const file = new File(Paths.cache, fileName);
-      // @ts-expect-error - Runtime expects 1 arg, but types say 2
       file.write(jsonString);
 
       // Share the file
@@ -189,47 +191,47 @@ export default function DataManagement() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-  },
-  content: {
-    padding: 16,
-  },
-  section: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 16,
-  },
-  button: {
-    backgroundColor: "#007AFF",
-    borderRadius: 8,
-    padding: 14,
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "white",
-  },
-  helpText: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 4,
-    lineHeight: 20,
-  },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    content: {
+      padding: theme.spacing.lg,
+    },
+    section: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      padding: theme.spacing.lg,
+      marginBottom: theme.spacing.lg,
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    sectionTitle: {
+      ...theme.typography.headingMd,
+      color: theme.colors.text,
+      marginBottom: theme.spacing.lg,
+    },
+    button: {
+      backgroundColor: theme.colors.accent,
+      borderRadius: 8,
+      padding: theme.spacing.md + 2,
+      alignItems: "center",
+      marginBottom: theme.spacing.sm,
+    },
+    buttonText: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: theme.colors.accentOn,
+    },
+    helpText: {
+      fontSize: 14,
+      color: theme.colors.textSecondary,
+      marginTop: theme.spacing.xs,
+      lineHeight: 20,
+    },
+  });

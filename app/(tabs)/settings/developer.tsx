@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -9,11 +9,14 @@ import {
 } from "react-native";
 import { resetDatabase } from "../../../src/db/expenseRepo";
 import { useMonthStore } from "../../../src/store/useMonthStore";
+import { Theme, useTheme } from "../../../src/theme";
 
 export default function DeveloperTools() {
   const { resetToCurrentMonth, loadMonthData } = useMonthStore();
   const [isResetting, setIsResetting] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   const handleSeedData = () => {
     Alert.alert(
@@ -138,59 +141,59 @@ export default function DeveloperTools() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-  },
-  content: {
-    padding: 16,
-  },
-  section: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 16,
-  },
-  button: {
-    backgroundColor: "#007AFF",
-    borderRadius: 8,
-    padding: 14,
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "white",
-  },
-  dangerButton: {
-    backgroundColor: "#FF3B30",
-  },
-  dangerButtonText: {
-    color: "white",
-  },
-  disabledButton: {
-    opacity: 0.6,
-  },
-  helpText: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 4,
-    lineHeight: 20,
-  },
-  dangerText: {
-    color: "#FF3B30",
-  },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    content: {
+      padding: theme.spacing.lg,
+    },
+    section: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      padding: theme.spacing.lg,
+      marginBottom: theme.spacing.lg,
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    sectionTitle: {
+      ...theme.typography.headingMd,
+      color: theme.colors.text,
+      marginBottom: theme.spacing.lg,
+    },
+    button: {
+      backgroundColor: theme.colors.accent,
+      borderRadius: 8,
+      padding: theme.spacing.md + 2,
+      alignItems: "center",
+      marginBottom: theme.spacing.sm,
+    },
+    buttonText: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: theme.colors.accentOn,
+    },
+    dangerButton: {
+      backgroundColor: theme.colors.danger,
+    },
+    dangerButtonText: {
+      color: theme.colors.dangerOn,
+    },
+    disabledButton: {
+      opacity: 0.6,
+    },
+    helpText: {
+      fontSize: 14,
+      color: theme.colors.textSecondary,
+      marginTop: theme.spacing.xs,
+      lineHeight: 20,
+    },
+    dangerText: {
+      color: theme.colors.danger,
+    },
+  });

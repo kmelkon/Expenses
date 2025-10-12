@@ -248,6 +248,24 @@ const MIGRATIONS: Migration[] = [
       ]);
     },
   },
+  {
+    toVersion: 4,
+    up: async (db) => {
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS app_settings (
+          key TEXT PRIMARY KEY,
+          value TEXT NOT NULL
+        );
+      `);
+
+      await db.runAsync(
+        `
+        INSERT OR IGNORE INTO app_settings (key, value)
+        VALUES ('theme_preference', 'system');
+      `
+      );
+    },
+  },
 ];
 
 async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
