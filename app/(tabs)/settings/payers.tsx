@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import {
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -98,96 +100,102 @@ export default function PayersScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Manage Payers</Text>
-        <View style={styles.listContainer}>
-          {payers.map((payer) => (
-            <View key={payer.id} style={styles.listItem}>
-              {editingPayerId === payer.id ? (
-                <View style={styles.editForm}>
-                  <TextInput
-                    style={styles.input}
-                    value={editingPayerName}
-                    onChangeText={setEditingPayerName}
-                    onSubmitEditing={() =>
-                      handleUpdatePayerName(payer.id, editingPayerName)
-                    }
-                    autoFocus
-                  />
-                  <TouchableOpacity
-                    onPress={() =>
-                      handleUpdatePayerName(payer.id, editingPayerName)
-                    }
-                    style={styles.saveButton}
-                  >
-                    <Text style={styles.saveButtonText}>Save</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => {
-                      setEditingPayerId(null);
-                      setEditingPayerName("");
-                    }}
-                    style={styles.cancelButton}
-                  >
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <>
-                  <View>
-                    <Text style={styles.listItemText}>
-                      {payer.display_name}
-                    </Text>
-                    <Text style={styles.listItemSubtext}>ID: {payer.id}</Text>
-                  </View>
-                  <View style={styles.buttonGroup}>
-                    <TouchableOpacity
-                      onPress={() => {
-                        setEditingPayerId(payer.id);
-                        setEditingPayerName(payer.display_name);
-                      }}
-                      style={styles.editButton}
-                    >
-                      <Text style={styles.editButtonText}>Edit</Text>
-                    </TouchableOpacity>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+      >
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Manage Payers</Text>
+          <View style={styles.listContainer}>
+            {payers.map((payer) => (
+              <View key={payer.id} style={styles.listItem}>
+                {editingPayerId === payer.id ? (
+                  <View style={styles.editForm}>
+                    <TextInput
+                      style={styles.input}
+                      value={editingPayerName}
+                      onChangeText={setEditingPayerName}
+                      onSubmitEditing={() =>
+                        handleUpdatePayerName(payer.id, editingPayerName)
+                      }
+                      autoFocus
+                    />
                     <TouchableOpacity
                       onPress={() =>
-                        handleDeletePayer(payer.id, payer.display_name)
+                        handleUpdatePayerName(payer.id, editingPayerName)
                       }
-                      style={styles.deleteButton}
+                      style={styles.saveButton}
                     >
-                      <Text style={styles.deleteButtonText}>Delete</Text>
+                      <Text style={styles.saveButtonText}>Save</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setEditingPayerId(null);
+                        setEditingPayerName("");
+                      }}
+                      style={styles.cancelButton}
+                    >
+                      <Text style={styles.cancelButtonText}>Cancel</Text>
                     </TouchableOpacity>
                   </View>
-                </>
-              )}
-            </View>
-          ))}
+                ) : (
+                  <>
+                    <View>
+                      <Text style={styles.listItemText}>
+                        {payer.display_name}
+                      </Text>
+                      <Text style={styles.listItemSubtext}>ID: {payer.id}</Text>
+                    </View>
+                    <View style={styles.buttonGroup}>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setEditingPayerId(payer.id);
+                          setEditingPayerName(payer.display_name);
+                        }}
+                        style={styles.editButton}
+                      >
+                        <Text style={styles.editButtonText}>Edit</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() =>
+                          handleDeletePayer(payer.id, payer.display_name)
+                        }
+                        style={styles.deleteButton}
+                      >
+                        <Text style={styles.deleteButtonText}>Delete</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </>
+                )}
+              </View>
+            ))}
+          </View>
+          <View style={styles.addForm}>
+            <TextInput
+              style={[styles.input, styles.inputSmall]}
+              placeholder="ID (e.g., 'john')"
+              value={newPayerId}
+              onChangeText={setNewPayerId}
+              autoCapitalize="none"
+            />
+            <TextInput
+              style={[styles.input, styles.inputLarge]}
+              placeholder="Display name"
+              value={newPayerName}
+              onChangeText={setNewPayerName}
+              onSubmitEditing={handleAddPayer}
+            />
+            <TouchableOpacity style={styles.addButton} onPress={handleAddPayer}>
+              <Text style={styles.addButtonText}>Add</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        <View style={styles.addForm}>
-          <TextInput
-            style={[styles.input, styles.inputSmall]}
-            placeholder="ID (e.g., 'john')"
-            placeholderTextColor={theme.colors.textMuted}
-            value={newPayerId}
-            onChangeText={setNewPayerId}
-            autoCapitalize="none"
-          />
-          <TextInput
-            style={[styles.input, styles.inputLarge]}
-            placeholder="Display name"
-            placeholderTextColor={theme.colors.textMuted}
-            value={newPayerName}
-            onChangeText={setNewPayerName}
-            onSubmitEditing={handleAddPayer}
-          />
-          <TouchableOpacity style={styles.addButton} onPress={handleAddPayer}>
-            <Text style={styles.addButtonText}>Add</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
