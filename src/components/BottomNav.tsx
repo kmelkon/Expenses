@@ -1,13 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
 import { usePathname, useRouter } from "expo-router";
-import React from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Theme, useTheme } from "../theme";
 
 export default function BottomNav() {
   const router = useRouter();
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   // Check if we're on a specific tab (handles both / and /(tabs) patterns)
   const isHomeActive = pathname === "/" || pathname === "/(tabs)";
@@ -35,7 +38,10 @@ export default function BottomNav() {
 
   return (
     <View
-      style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}
+      style={[
+        styles.container,
+        { paddingBottom: Math.max(insets.bottom, theme.spacing.sm) },
+      ]}
     >
       {/* Home/Expenses Tab */}
       <TouchableOpacity
@@ -47,7 +53,7 @@ export default function BottomNav() {
         <Ionicons
           name={isHomeActive ? "home" : "home-outline"}
           size={24}
-          color={isHomeActive ? "#007AFF" : "#666"}
+          color={isHomeActive ? theme.colors.accent : theme.colors.textSecondary}
         />
         <Text style={[styles.label, isHomeActive && styles.activeLabel]}>
           Home
@@ -66,7 +72,11 @@ export default function BottomNav() {
             pathname === "/add" && styles.addButtonActive,
           ]}
         >
-          <Ionicons name="add" size={28} color="white" />
+          <Ionicons
+            name="add"
+            size={28}
+            color={theme.colors.accentOn}
+          />
         </View>
         <Text style={styles.label}>Add</Text>
       </TouchableOpacity>
@@ -81,7 +91,9 @@ export default function BottomNav() {
         <Ionicons
           name={isSettingsActive ? "settings" : "settings-outline"}
           size={24}
-          color={isSettingsActive ? "#007AFF" : "#666"}
+          color={
+            isSettingsActive ? theme.colors.accent : theme.colors.textSecondary
+          }
         />
         <Text style={[styles.label, isSettingsActive && styles.activeLabel]}>
           Settings
@@ -91,46 +103,47 @@ export default function BottomNav() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    backgroundColor: "white",
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#E0E0E0",
-    paddingBottom: 8,
-    paddingTop: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 8,
-  },
-  tab: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 8,
-  },
-  label: {
-    fontSize: 12,
-    color: "#666",
-    marginTop: 4,
-    fontWeight: "500",
-  },
-  activeLabel: {
-    color: "#007AFF",
-    fontWeight: "600",
-  },
-  addButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#007AFF",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 4,
-  },
-  addButtonActive: {
-    backgroundColor: "#0051D5",
-  },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      backgroundColor: theme.colors.navBackground,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: theme.colors.navBorder,
+      paddingBottom: theme.spacing.sm,
+      paddingTop: theme.spacing.sm,
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: -2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 3,
+      elevation: 8,
+    },
+    tab: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: theme.spacing.sm,
+    },
+    label: {
+      fontSize: 12,
+      color: theme.colors.textSecondary,
+      marginTop: 4,
+      fontWeight: "500",
+    },
+    activeLabel: {
+      color: theme.colors.accent,
+      fontWeight: "600",
+    },
+    addButton: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: theme.colors.accent,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 4,
+    },
+    addButtonActive: {
+      backgroundColor: theme.colors.accentStrong,
+    },
+  });

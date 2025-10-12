@@ -5,6 +5,7 @@ import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { getDB } from "../src/db/sqlite";
 import { useSettingsStore } from "../src/store/useSettingsStore";
+import { ThemeProvider, useTheme } from "../src/theme";
 
 export default function RootLayout() {
   const loadSettings = useSettingsStore((state) => state.loadSettings);
@@ -23,44 +24,60 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar style="auto" />
-      <View style={{ flex: 1 }}>
-        <Stack
-          screenOptions={{
-            headerStyle: {
-              backgroundColor: "#007AFF",
-            },
-            headerTintColor: "#fff",
-            headerTitleStyle: {
-              fontWeight: "600",
-            },
-          }}
-        >
-          {/* Tabs Group - Home and Settings */}
-          <Stack.Screen
-            name="(tabs)"
-            options={{
-              headerShown: false, // Tabs will manage their own headers
-            }}
-          />
-
-          {/* Modal Screens */}
-          <Stack.Screen
-            name="add"
-            options={{
-              title: "Add Expense",
-              presentation: "modal",
-            }}
-          />
-          <Stack.Screen
-            name="edit/[id]"
-            options={{
-              title: "Edit Expense",
-              presentation: "modal",
-            }}
-          />
-        </Stack>
-      </View>
+      <ThemeProvider>
+        <AppShell />
+      </ThemeProvider>
     </GestureHandlerRootView>
+  );
+}
+
+function AppShell() {
+  const theme = useTheme();
+
+  return (
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <StatusBar
+        style={theme.statusBarStyle}
+        backgroundColor={theme.colors.headerBackground}
+      />
+      <Stack
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: theme.colors.headerBackground,
+          },
+          headerTintColor: theme.colors.headerTint,
+          headerTitleStyle: {
+            ...theme.typography.headingSm,
+          },
+          contentStyle: {
+            backgroundColor: theme.colors.background,
+          },
+        }}
+      >
+        {/* Tabs Group - Home and Settings */}
+        <Stack.Screen
+          name="(tabs)"
+          options={{
+            headerShown: false, // Tabs will manage their own headers
+          }}
+        />
+
+        {/* Modal Screens */}
+        <Stack.Screen
+          name="add"
+          options={{
+            title: "Add Expense",
+            presentation: "modal",
+          }}
+        />
+        <Stack.Screen
+          name="edit/[id]"
+          options={{
+            title: "Edit Expense",
+            presentation: "modal",
+          }}
+        />
+      </Stack>
+    </View>
   );
 }

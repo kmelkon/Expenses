@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -12,8 +12,11 @@ import {
   useCategories,
   useSettingsStore,
 } from "../../../src/store/useSettingsStore";
+import { Theme, useTheme } from "../../../src/theme";
 
 export default function CategoriesScreen() {
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const categories = useCategories();
   const { addCategory, deleteCategory } = useSettingsStore();
 
@@ -99,82 +102,83 @@ export default function CategoriesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-  },
-  content: {
-    padding: 16,
-  },
-  section: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 16,
-  },
-  listContainer: {
-    marginBottom: 12,
-  },
-  listItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#E0E0E0",
-  },
-  listItemText: {
-    fontSize: 16,
-    color: "#333",
-    fontWeight: "500",
-  },
-  addForm: {
-    flexDirection: "row",
-    gap: 8,
-    marginTop: 8,
-  },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#DDD",
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 16,
-    backgroundColor: "#F9F9F9",
-  },
-  addButton: {
-    backgroundColor: "#007AFF",
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    justifyContent: "center",
-  },
-  addButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "white",
-  },
-  deleteButton: {
-    backgroundColor: "#FF3B30",
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  deleteButtonText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "white",
-  },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    content: {
+      padding: theme.spacing.lg,
+    },
+    section: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      padding: theme.spacing.lg,
+      marginBottom: theme.spacing.lg,
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    sectionTitle: {
+      ...theme.typography.headingMd,
+      color: theme.colors.text,
+      marginBottom: theme.spacing.lg,
+    },
+    listContainer: {
+      marginBottom: theme.spacing.md,
+    },
+    listItem: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: theme.spacing.md,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: theme.colors.border,
+    },
+    listItemText: {
+      fontSize: 16,
+      color: theme.colors.text,
+      fontWeight: "500",
+    },
+    addForm: {
+      flexDirection: "row",
+      gap: theme.spacing.sm,
+      marginTop: theme.spacing.sm,
+    },
+    input: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: theme.colors.borderStrong,
+      borderRadius: 8,
+      padding: 10,
+      fontSize: 16,
+      backgroundColor: theme.colors.surfaceMuted,
+      color: theme.colors.text,
+    },
+    addButton: {
+      backgroundColor: theme.colors.accent,
+      borderRadius: 8,
+      paddingHorizontal: theme.spacing.lg,
+      paddingVertical: theme.spacing.sm + 2,
+      justifyContent: "center",
+    },
+    addButtonText: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: theme.colors.accentOn,
+    },
+    deleteButton: {
+      backgroundColor: theme.colors.danger,
+      borderRadius: 6,
+      paddingHorizontal: theme.spacing.md,
+      paddingVertical: theme.spacing.xs + 2,
+    },
+    deleteButtonText: {
+      fontSize: 14,
+      fontWeight: "500",
+      color: theme.colors.dangerOn,
+    },
+  });

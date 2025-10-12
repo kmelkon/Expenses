@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -24,9 +24,12 @@ import {
   getPreviousMonth,
 } from "../../src/utils/date";
 import { formatAmount } from "../../src/utils/money";
+import { Theme, useTheme } from "../../src/theme";
 
 export default function Index() {
   const router = useRouter();
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const {
     selectedMonth,
     expenses,
@@ -166,7 +169,7 @@ export default function Index() {
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={theme.colors.accent} />
         </View>
       ) : (
         <FlatList
@@ -191,136 +194,135 @@ export default function Index() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F5F5F5",
-  },
-  monthNavigation: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: "white",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
-  },
-  monthButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#F0F0F0",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  monthButtonText: {
-    fontSize: 24,
-    fontWeight: "600",
-    color: "#333",
-  },
-  monthTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-  },
-  monthTitleContainer: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  monthTitlePressed: {
-    backgroundColor: "#F0F0F0",
-    opacity: 0.7,
-  },
-  list: {
-    flex: 1,
-  },
-  listContent: {
-    padding: 16,
-    paddingBottom: 16, // Reduced since no floating button
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  expenseItem: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  expenseHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  expenseDate: {
-    fontSize: 14,
-    color: "#666",
-    fontWeight: "500",
-  },
-  expenseBody: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  expenseLeft: {
-    flex: 1,
-    marginRight: 12,
-  },
-  expenseCategory: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 2,
-  },
-  expenseNote: {
-    fontSize: 14,
-    color: "#666",
-  },
-  expenseAmount: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#007AFF",
-    textAlign: "right",
-    flexWrap: "nowrap",
-  },
-  emptyState: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 60,
-  },
-  emptyStateTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-    marginBottom: 8,
-  },
-  emptyStateMessage: {
-    fontSize: 14,
-    color: "#666",
-    textAlign: "center",
-  },
-  deleteAction: {
-    backgroundColor: "#FF3B30",
-    justifyContent: "center",
-    alignItems: "flex-end",
-    paddingHorizontal: 20,
-    marginBottom: 12,
-    borderTopRightRadius: 12,
-    borderBottomRightRadius: 12,
-  },
-  deleteText: {
-    color: "white",
-    fontWeight: "600",
-    fontSize: 16,
-  },
-});
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background,
+    },
+    monthNavigation: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: theme.spacing.xl,
+      paddingVertical: theme.spacing.lg,
+      backgroundColor: theme.colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border,
+    },
+    monthButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: theme.colors.surfaceMuted,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    monthButtonText: {
+      fontSize: 24,
+      fontWeight: "600",
+      color: theme.colors.text,
+    },
+    monthTitle: {
+      ...theme.typography.headingSm,
+      color: theme.colors.text,
+    },
+    monthTitleContainer: {
+      paddingHorizontal: theme.spacing.md,
+      paddingVertical: theme.spacing.sm,
+      borderRadius: 8,
+    },
+    monthTitlePressed: {
+      backgroundColor: theme.colors.surfaceMuted,
+      opacity: 0.7,
+    },
+    list: {
+      flex: 1,
+    },
+    listContent: {
+      padding: theme.spacing.lg,
+      paddingBottom: theme.spacing.lg,
+    },
+    loadingContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    expenseItem: {
+      backgroundColor: theme.colors.surfaceElevated,
+      borderRadius: 12,
+      padding: theme.spacing.lg,
+      marginBottom: theme.spacing.md,
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
+      elevation: 2,
+    },
+    expenseHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: theme.spacing.sm,
+    },
+    expenseDate: {
+      fontSize: 14,
+      color: theme.colors.textSecondary,
+      fontWeight: "500",
+    },
+    expenseBody: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+    },
+    expenseLeft: {
+      flex: 1,
+      marginRight: theme.spacing.md,
+    },
+    expenseCategory: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: theme.colors.text,
+      marginBottom: 2,
+    },
+    expenseNote: {
+      fontSize: 14,
+      color: theme.colors.textSecondary,
+    },
+    expenseAmount: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: theme.colors.accent,
+      textAlign: "right",
+      flexWrap: "nowrap",
+    },
+    emptyState: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: theme.spacing.xxxl * 2,
+    },
+    emptyStateTitle: {
+      ...theme.typography.headingSm,
+      color: theme.colors.text,
+      marginBottom: theme.spacing.sm,
+    },
+    emptyStateMessage: {
+      fontSize: 14,
+      color: theme.colors.textSecondary,
+      textAlign: "center",
+    },
+    deleteAction: {
+      backgroundColor: theme.colors.danger,
+      justifyContent: "center",
+      alignItems: "flex-end",
+      paddingHorizontal: theme.spacing.xl,
+      marginBottom: theme.spacing.md,
+      borderTopRightRadius: 12,
+      borderBottomRightRadius: 12,
+    },
+    deleteText: {
+      color: theme.colors.dangerOn,
+      fontWeight: "600",
+      fontSize: 16,
+    },
+  });
