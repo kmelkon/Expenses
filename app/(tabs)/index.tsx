@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import Swipeable from "react-native-gesture-handler/Swipeable";
 import BottomNav from "../../src/components/BottomNav";
 import { PayerChip } from "../../src/components/PayerChip";
@@ -144,8 +145,7 @@ export default function Index() {
           style={styles.monthButton}
           onPress={handlePreviousMonth}
         >
-          {/* TODO: use icon instead of text for the chevron here and for the next button">"" */}
-          <Text style={styles.monthButtonText}>‹</Text>
+          <Ionicons name="chevron-back" size={22} color={theme.colors.text} />
         </TouchableOpacity>
 
         <Pressable
@@ -163,7 +163,7 @@ export default function Index() {
         </Pressable>
 
         <TouchableOpacity style={styles.monthButton} onPress={handleNextMonth}>
-          <Text style={styles.monthButtonText}>›</Text>
+          <Ionicons name="chevron-forward" size={22} color={theme.colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -217,11 +217,6 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.colors.surfaceMuted,
       alignItems: "center",
       justifyContent: "center",
-    },
-    monthButtonText: {
-      fontSize: 24,
-      fontWeight: "600",
-      color: theme.colors.text,
     },
     monthTitle: {
       ...theme.typography.headingSm,
