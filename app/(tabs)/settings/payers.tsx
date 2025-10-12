@@ -169,6 +169,7 @@ export default function PayersScreen() {
           <TextInput
             style={[styles.input, styles.inputSmall]}
             placeholder="ID (e.g., 'john')"
+            placeholderTextColor={theme.colors.textMuted}
             value={newPayerId}
             onChangeText={setNewPayerId}
             autoCapitalize="none"
@@ -176,6 +177,7 @@ export default function PayersScreen() {
           <TextInput
             style={[styles.input, styles.inputLarge]}
             placeholder="Display name"
+            placeholderTextColor={theme.colors.textMuted}
             value={newPayerName}
             onChangeText={setNewPayerName}
             onSubmitEditing={handleAddPayer}

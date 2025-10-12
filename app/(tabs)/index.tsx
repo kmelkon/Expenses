@@ -16,6 +16,7 @@ import { PayerChip } from "../../src/components/PayerChip";
 import { TotalsTables } from "../../src/components/TotalsTables";
 import { ExpenseRow, deleteExpense } from "../../src/db/expenseRepo";
 import { useMonthStore } from "../../src/store/useMonthStore";
+import { Theme, useTheme } from "../../src/theme";
 import {
   formatExpenseDate,
   formatMonthDisplay,
@@ -24,7 +25,6 @@ import {
   getPreviousMonth,
 } from "../../src/utils/date";
 import { formatAmount } from "../../src/utils/money";
-import { Theme, useTheme } from "../../src/theme";
 
 export default function Index() {
   const router = useRouter();
@@ -317,8 +317,7 @@ const createStyles = (theme: Theme) =>
       alignItems: "flex-end",
       paddingHorizontal: theme.spacing.xl,
       marginBottom: theme.spacing.md,
-      borderTopRightRadius: 12,
-      borderBottomRightRadius: 12,
+      borderRadius: 12,
     },
     deleteText: {
       color: theme.colors.dangerOn,

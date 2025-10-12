@@ -50,6 +50,7 @@ export default function EditExpense() {
   const [note, setNote] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const datePickerThemeVariant = theme.scheme === "dark" ? "dark" : "light";
 
   useEffect(() => {
     if (paidBy || !payers.length) {
@@ -320,6 +321,8 @@ export default function EditExpense() {
                 mode="date"
                 display="inline"
                 onChange={handleDateChange}
+                themeVariant={datePickerThemeVariant}
+                textColor={theme.colors.text}
               />
             </View>
           )}

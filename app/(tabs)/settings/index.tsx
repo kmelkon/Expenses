@@ -135,6 +135,7 @@ export default function Settings() {
             <TextInput
               style={styles.input}
               placeholder="New category name"
+              placeholderTextColor={theme.colors.textMuted}
               value={newCategoryName}
               onChangeText={setNewCategoryName}
               onSubmitEditing={handleAddCategory}
