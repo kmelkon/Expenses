@@ -1,6 +1,8 @@
 import { useState } from "react";
 import {
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -63,39 +65,44 @@ export default function CategoriesScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Manage Categories</Text>
-        <View style={styles.listContainer}>
-          {categories.map((category) => (
-            <View key={category.id} style={styles.listItem}>
-              <Text style={styles.listItemText}>{category.name}</Text>
-              <TouchableOpacity
-                onPress={() => handleDeleteCategory(category.name)}
-                style={styles.deleteButton}
-              >
-                <Text style={styles.deleteButtonText}>Delete</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Manage Categories</Text>
+          <View style={styles.listContainer}>
+            {categories.map((category) => (
+              <View key={category.id} style={styles.listItem}>
+                <Text style={styles.listItemText}>{category.name}</Text>
+                <TouchableOpacity
+                  onPress={() => handleDeleteCategory(category.name)}
+                  style={styles.deleteButton}
+                >
+                  <Text style={styles.deleteButtonText}>Delete</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+          <View style={styles.addForm}>
+            <TextInput
+              style={styles.input}
+              placeholder="New category name"
+              value={newCategoryName}
+              onChangeText={setNewCategoryName}
+              onSubmitEditing={handleAddCategory}
+            />
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={handleAddCategory}
+            >
+              <Text style={styles.addButtonText}>Add</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        <View style={styles.addForm}>
-          <TextInput
-            style={styles.input}
-            placeholder="New category name"
-            value={newCategoryName}
-            onChangeText={setNewCategoryName}
-            onSubmitEditing={handleAddCategory}
-          />
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={handleAddCategory}
-          >
-            <Text style={styles.addButtonText}>Add</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
