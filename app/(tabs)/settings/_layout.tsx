@@ -45,6 +45,13 @@ export default function SettingsLayout() {
         }}
       />
       <Stack.Screen
+        name="appearance"
+        options={{
+          title: "Appearance",
+          headerShown: true,
+        }}
+      />
+      <Stack.Screen
         name="data-management"
         options={{
           title: "Data Management",

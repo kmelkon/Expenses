@@ -7,10 +7,15 @@ import {
 import { ColorSchemeName, useColorScheme } from "react-native";
 import { darkColors, lightColors, type Palette } from "./colors";
 import { spacing, typography } from "./tokens";
+import {
+  ThemePreference,
+  useAppearanceStore,
+} from "../store/useAppearanceStore";
 
 type StatusBarStyle = "light" | "dark";
 
 export type Theme = {
+  preference: ThemePreference;
   scheme: ColorSchemeName;
   colors: Palette;
   spacing: typeof spacing;
@@ -19,6 +24,7 @@ export type Theme = {
 };
 
 const defaultTheme: Theme = {
+  preference: "system",
   scheme: "light",
   colors: lightColors,
   spacing,
@@ -28,11 +34,15 @@ const defaultTheme: Theme = {
 
 const ThemeContext = createContext<Theme>(defaultTheme);
 
-const resolveTheme = (scheme: ColorSchemeName): Theme => {
+const resolveTheme = (
+  scheme: ColorSchemeName,
+  preference: ThemePreference
+): Theme => {
   const isDark = scheme === "dark";
   const colors = isDark ? darkColors : lightColors;
 
   return {
+    preference,
     scheme,
     colors,
     spacing,
@@ -43,10 +53,19 @@ const resolveTheme = (scheme: ColorSchemeName): Theme => {
 
 export function ThemeProvider({ children }: PropsWithChildren) {
   const colorScheme = useColorScheme();
+  const themePreference = useAppearanceStore(
+    (state) => state.themePreference
+  );
 
   const value = useMemo(
-    () => resolveTheme(colorScheme ?? "light"),
-    [colorScheme]
+    () =>
+      resolveTheme(
+        themePreference === "system"
+          ? colorScheme ?? "light"
+          : themePreference,
+        themePreference
+      ),
+    [colorScheme, themePreference]
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
@@ -66,4 +85,12 @@ export function useSpacing() {
 
 export function useTypography() {
   return useTheme().typography;
+}
+
+export function useThemePreference() {
+  return useAppearanceStore((state) => state.themePreference);
+}
+
+export function useSetThemePreference() {
+  return useAppearanceStore((state) => state.setThemePreference);
 }

@@ -37,7 +37,6 @@ export default function DataManagement() {
 
       // Create file in cache directory using File constructor
       const file = new File(Paths.cache, fileName);
-      // @ts-expect-error - Runtime expects 1 arg, but types say 2
       file.write(jsonString);
 
       // Share the file

@@ -85,6 +85,13 @@ export default function Settings() {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.menuItem}
+            onPress={() => router.push("/settings/appearance")}
+          >
+            <Text style={styles.menuItemText}>Appearance</Text>
+            <Text style={styles.menuItemChevron}>›</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuItem}
             onPress={() => router.push("/settings/data-management")}
           >
             <Text style={styles.menuItemText}>Data Management</Text>

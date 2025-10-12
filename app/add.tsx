@@ -211,28 +211,27 @@ export default function AddExpense() {
             <View style={styles.segmentedControl}>
               {payers.map((payer, index) => {
                 const isActive = paidBy === payer.id;
-                const buttonStyles = [styles.segmentButton];
-
-                if (index !== payers.length - 1) {
-                  buttonStyles.push(styles.segmentButtonDivider);
-                }
-
-                if (isActive) {
-                  buttonStyles.push(styles.segmentButtonActive);
-                }
-
-                const textStyles = [styles.segmentButtonText];
-                if (isActive) {
-                  textStyles.push(styles.segmentButtonTextActive);
-                }
 
                 return (
                   <TouchableOpacity
                     key={payer.id}
-                    style={buttonStyles}
+                    style={[
+                      styles.segmentButton,
+                      index !== payers.length - 1
+                        ? styles.segmentButtonDivider
+                        : undefined,
+                      isActive ? styles.segmentButtonActive : undefined,
+                    ]}
                     onPress={() => setPaidBy(payer.id)}
                   >
-                    <Text style={textStyles}>{payer.display_name}</Text>
+                    <Text
+                      style={[
+                        styles.segmentButtonText,
+                        isActive ? styles.segmentButtonTextActive : undefined,
+                      ]}
+                    >
+                      {payer.display_name}
+                    </Text>
                   </TouchableOpacity>
                 );
               })}

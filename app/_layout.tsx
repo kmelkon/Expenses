@@ -5,22 +5,25 @@ import { View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { getDB } from "../src/db/sqlite";
 import { useSettingsStore } from "../src/store/useSettingsStore";
+import { useAppearanceStore } from "../src/store/useAppearanceStore";
 import { ThemeProvider, useTheme } from "../src/theme";
 
 export default function RootLayout() {
   const loadSettings = useSettingsStore((state) => state.loadSettings);
+  const loadThemePreference = useAppearanceStore(
+    (state) => state.loadThemePreference
+  );
 
   useEffect(() => {
     // Initialize database on app start
     const initializeApp = async () => {
       await getDB();
 
-      // Load categories and payers into the settings store
-      await loadSettings();
+      await Promise.all([loadSettings(), loadThemePreference()]);
     };
 
     initializeApp().catch(console.error);
-  }, [loadSettings]);
+  }, [loadSettings, loadThemePreference]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
