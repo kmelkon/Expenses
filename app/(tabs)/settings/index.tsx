@@ -14,6 +14,7 @@ import {
   useCategories,
   useSettingsStore,
 } from "../../../src/store/useSettingsStore";
+import { useAuthStore } from "../../../src/store/useAuthStore";
 import { Theme, useTheme } from "../../../src/theme";
 
 export default function Settings() {
@@ -22,8 +23,10 @@ export default function Settings() {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const categories = useCategories();
   const { addCategory, deleteCategory } = useSettingsStore();
+  const signOut = useAuthStore((state) => state.signOut);
 
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const handleAddCategory = async () => {
     const trimmed = newCategoryName.trim();
@@ -66,6 +69,28 @@ export default function Settings() {
         },
       ]
     );
+  };
+
+  const handleSignOut = () => {
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            setIsSigningOut(true);
+            await signOut();
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : "Failed to sign out.";
+            Alert.alert("Error", message);
+          } finally {
+            setIsSigningOut(false);
+          }
+        },
+      },
+    ]);
   };
 
   return (
@@ -113,6 +138,16 @@ export default function Settings() {
               <Text style={styles.menuItemChevron}>›</Text>
             </TouchableOpacity>
           )}
+          <TouchableOpacity
+            style={[styles.menuItem, styles.signOutItem]}
+            onPress={handleSignOut}
+            disabled={isSigningOut}
+          >
+            <Text style={styles.signOutText}>
+              {isSigningOut ? "Signing out..." : "Sign Out"}
+            </Text>
+            <Text style={styles.menuItemChevron}>›</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Categories Section */}
@@ -184,10 +219,19 @@ const createStyles = (theme: Theme) =>
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: theme.colors.border,
     },
+    signOutItem: {
+      borderBottomWidth: 0,
+      marginTop: theme.spacing.md,
+    },
     menuItemText: {
       fontSize: 16,
       color: theme.colors.text,
       fontWeight: "500",
+    },
+    signOutText: {
+      fontSize: 16,
+      color: theme.colors.danger,
+      fontWeight: "600",
     },
     menuItemChevron: {
       fontSize: 24,

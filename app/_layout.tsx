@@ -1,11 +1,13 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import { View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SignInScreen } from "../src/features/auth/SignInScreen";
 import { getDB } from "../src/db/sqlite";
-import { useSettingsStore } from "../src/store/useSettingsStore";
 import { useAppearanceStore } from "../src/store/useAppearanceStore";
+import { useAuthStore } from "../src/store/useAuthStore";
+import { useSettingsStore } from "../src/store/useSettingsStore";
 import { ThemeProvider, useTheme } from "../src/theme";
 
 export default function RootLayout() {
@@ -13,17 +15,22 @@ export default function RootLayout() {
   const loadThemePreference = useAppearanceStore(
     (state) => state.loadThemePreference
   );
+  const initializeAuth = useAuthStore((state) => state.initialize);
 
   useEffect(() => {
     // Initialize database on app start
     const initializeApp = async () => {
       await getDB();
 
-      await Promise.all([loadSettings(), loadThemePreference()]);
+      await Promise.all([
+        loadSettings(),
+        loadThemePreference(),
+        initializeAuth(),
+      ]);
     };
 
     initializeApp().catch(console.error);
-  }, [loadSettings, loadThemePreference]);
+  }, [initializeAuth, loadSettings, loadThemePreference]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -36,6 +43,35 @@ export default function RootLayout() {
 
 function AppShell() {
   const theme = useTheme();
+  const session = useAuthStore((state) => state.session);
+  const isHydrating = useAuthStore((state) => state.isHydrating);
+
+  if (isHydrating) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: theme.colors.background,
+        }}
+      >
+        <ActivityIndicator size="large" color={theme.colors.accent} />
+      </View>
+    );
+  }
+
+  if (!session) {
+    return (
+      <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+        <StatusBar
+          style={theme.statusBarStyle}
+          backgroundColor={theme.colors.headerBackground}
+        />
+        <SignInScreen />
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -62,6 +98,12 @@ function AppShell() {
           name="(tabs)"
           options={{
             headerShown: false, // Tabs will manage their own headers
+          }}
+        />
+        <Stack.Screen
+          name="auth/index"
+          options={{
+            headerShown: false,
           }}
         />
 
