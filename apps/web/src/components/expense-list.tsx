@@ -10,6 +10,14 @@ interface ExpenseListProps {
   onRefresh: () => void;
 }
 
+/**
+ * Render an expense list UI that displays each expense with date, category, note, amount, payer, and a delete action.
+ *
+ * @param expenses - Array of expense rows to display
+ * @param payers - Array of payer rows used to resolve payer display names
+ * @param onRefresh - Callback invoked after an expense is marked deleted to refresh the data
+ * @returns The rendered React element for the expense list or an empty-state placeholder when no expenses exist
+ */
 export function ExpenseList({ expenses, payers, onRefresh }: ExpenseListProps) {
   const supabase = createClient();
 

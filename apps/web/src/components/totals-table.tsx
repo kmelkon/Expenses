@@ -8,6 +8,13 @@ interface TotalsTableProps {
   payers: PayerRow[];
 }
 
+/**
+ * Render a monthly summary card showing each payer's total and the grand total.
+ *
+ * @param summary - Month summary containing per-person totals and the grand total
+ * @param payers - Array of payers used to resolve display names for each total
+ * @returns The rendered totals table element
+ */
 export function TotalsTable({ summary, payers }: TotalsTableProps) {
   const getPayerName = (id: string) =>
     payers.find(p => p.id === id)?.display_name || id;

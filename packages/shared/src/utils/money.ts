@@ -1,7 +1,8 @@
 /**
- * Convert cents to formatted SEK string
- * @param cents - Amount in cents (e.g., 12345 for 123.45 SEK)
- * @returns Formatted currency string (e.g., "123.45 SEK")
+ * Format an amount in cents as an SEK currency string.
+ *
+ * @param cents - Amount in cents (for example, 12345 represents 123.45 SEK)
+ * @returns A string with the amount formatted to two decimal places followed by " SEK" (for example, "123.45 SEK")
  */
 export function formatSEK(cents: number): string {
   const amount = cents / 100;
@@ -33,9 +34,10 @@ export const parseAmountInput = (s: string): number | null => {
 };
 
 /**
- * Convert cents to display amount for input field
- * @param cents - Amount in cents
- * @returns String representation for input field (e.g., "123.45")
+ * Converts an amount in cents to a string suitable for a numeric input field.
+ *
+ * @param cents - Amount in cents (integer)
+ * @returns A string with exactly two decimal places representing kronor (e.g., "123.45")
  */
 export function centsToInputValue(cents: number): string {
   return (cents / 100).toFixed(2);

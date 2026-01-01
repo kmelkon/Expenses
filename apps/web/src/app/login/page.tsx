@@ -2,6 +2,13 @@
 
 import { createClient } from "@/lib/supabase/client";
 
+/**
+ * Render the login page with a Google sign-in option.
+ *
+ * The component displays app title and description, a Google OAuth sign-in button that initiates authentication and redirects to `/auth/callback`, and a short footer note.
+ *
+ * @returns The rendered JSX element for the login page.
+ */
 export default function LoginPage() {
   const handleGoogleLogin = async () => {
     const supabase = createClient();

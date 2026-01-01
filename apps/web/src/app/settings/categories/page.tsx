@@ -7,6 +7,13 @@ import { useRouter } from "next/navigation";
 import type { CategoryRow, ProfileRow } from "@expenses/shared";
 import { Input } from "@/components/ui";
 
+/**
+ * Renders the Categories management page which lists a household's expense categories and provides UI to add or delete categories.
+ *
+ * The page loads the current user's profile and household categories on mount, redirects unauthenticated users to "/login" and users without a household to "/setup". It shows a form to create a new category (derives an ID from the name and appends it with the next display order) and allows deleting categories after confirmation; both actions reload the category list on success and show alerts on failure.
+ *
+ * @returns The rendered Categories settings page JSX including the add-category form, category list, and loading state.
+ */
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [newCategoryName, setNewCategoryName] = useState("");

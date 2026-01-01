@@ -5,6 +5,14 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Input, Label } from "@/components/ui";
 
+/**
+ * Renders a setup page that lets the user choose to create a new household or join an existing one.
+ *
+ * The component presents choice buttons and conditional forms for creating or joining, manages local
+ * form and loading state, displays form errors, and navigates to the home route after a successful action.
+ *
+ * @returns The React element for the setup page UI.
+ */
 export default function SetupPage() {
   const [mode, setMode] = useState<"create" | "join" | null>(null);
   const [householdName, setHouseholdName] = useState("");

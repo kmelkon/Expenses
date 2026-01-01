@@ -13,6 +13,18 @@ interface AddExpenseButtonProps {
   onAdded: () => void;
 }
 
+/**
+ * Renders a floating action button that opens a modal form to create and insert a new expense.
+ *
+ * The form collects amount, category, payer, date, and an optional note, then inserts a new row
+ * into the `expenses` table for the provided household and invokes `onAdded` after success.
+ *
+ * @param categories - Array of categories used to populate the Category select; the first item's `name` is used as the default selection
+ * @param payers - Array of payers used to render the "Paid by" buttons; the first item's `id` is used as the default payer
+ * @param householdId - Identifier of the household to associate with the new expense
+ * @param onAdded - Callback invoked after a successful expense insert
+ * @returns The AddExpenseButton component's JSX element
+ */
 export function AddExpenseButton({ categories, payers, householdId, onAdded }: AddExpenseButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [amount, setAmount] = useState("");

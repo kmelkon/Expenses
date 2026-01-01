@@ -4,6 +4,17 @@ import type { CookieOptions } from "@supabase/ssr";
 
 type CookieToSet = { name: string; value: string; options?: CookieOptions };
 
+/**
+ * Synchronizes Supabase session cookies with the incoming request and enforces authentication redirects.
+ *
+ * Creates a Supabase server client bound to the provided request, applies any cookie updates produced by the client to the outgoing response, and redirects unauthenticated requests to `/login` or authenticated requests away from the login page as appropriate.
+ *
+ * @param request - The incoming Next.js request to inspect and bind to the Supabase client
+ * @returns A NextResponse that may be:
+ *   - a redirect to `/login` for unauthenticated access to protected routes,
+ *   - a redirect to `/` when an authenticated user accesses the login page,
+ *   - or the response updated with any cookies set by the Supabase client. 
+ */
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
