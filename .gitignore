@@ -37,6 +37,10 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# Next.js
+.next/
+out/
+
 app-example
 
 # generated native folders
