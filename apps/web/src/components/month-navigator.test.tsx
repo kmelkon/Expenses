@@ -2,6 +2,16 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MonthNavigator } from "./month-navigator";
 
+vi.mock("@expenses/shared", () => ({
+  getCurrentMonth: () => "2025-06",
+  formatMonthDisplay: (yyyyMM: string) => {
+    const months = ["January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"];
+    const [year, month] = yyyyMM.split("-");
+    return `${months[parseInt(month) - 1]} ${year}`;
+  },
+}));
+
 describe("MonthNavigator", () => {
   it("displays the formatted month name", () => {
     render(
@@ -34,7 +44,7 @@ describe("MonthNavigator", () => {
     const onNext = vi.fn();
     render(
       <MonthNavigator
-        currentMonth="2025-06"
+        currentMonth="2025-05"
         onPrevious={() => {}}
         onNext={onNext}
       />
@@ -44,5 +54,19 @@ describe("MonthNavigator", () => {
     fireEvent.click(nextButton);
 
     expect(onNext).toHaveBeenCalledTimes(1);
+  });
+
+  it("disables next button when viewing current month", () => {
+    const onNext = vi.fn();
+    render(
+      <MonthNavigator
+        currentMonth="2025-06"
+        onPrevious={() => {}}
+        onNext={onNext}
+      />
+    );
+
+    const nextButton = screen.getByRole("button", { name: /next month/i });
+    expect(nextButton).toBeDisabled();
   });
 });
