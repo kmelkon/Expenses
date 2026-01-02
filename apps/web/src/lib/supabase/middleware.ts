@@ -36,18 +36,48 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protected routes
+  // Get user's profile if authenticated
+  let hasHousehold = false;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("household_id")
+      .eq("id", user.id)
+      .single();
+    hasHousehold = !!profile?.household_id;
+  }
+
+  // Route classification
   const isAuthPage = request.nextUrl.pathname.startsWith("/login");
   const isAuthCallback = request.nextUrl.pathname.startsWith("/auth/callback");
-  const isPublicRoute = isAuthPage || isAuthCallback;
+  const isSetupPage = request.nextUrl.pathname.startsWith("/setup");
 
-  if (!user && !isPublicRoute) {
+  // Unauthenticated users
+  if (!user) {
+    // Allow auth pages and callback
+    if (isAuthPage || isAuthCallback) {
+      return supabaseResponse;
+    }
+    // Redirect everything else (including /setup) to login
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  if (user && isAuthPage) {
+  // Authenticated users without household
+  if (!hasHousehold) {
+    // Allow setup page and auth callback
+    if (isSetupPage || isAuthCallback) {
+      return supabaseResponse;
+    }
+    // Redirect login page and all other routes to setup
+    const url = request.nextUrl.clone();
+    url.pathname = "/setup";
+    return NextResponse.redirect(url);
+  }
+
+  // Authenticated users with household
+  if (isAuthPage || isSetupPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);
