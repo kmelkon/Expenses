@@ -32,9 +32,14 @@ yarn-error.*
 
 # local env files
 .env*.local
+.env
 
 # typescript
 *.tsbuildinfo
+
+# Next.js
+.next/
+out/
 
 app-example
 
