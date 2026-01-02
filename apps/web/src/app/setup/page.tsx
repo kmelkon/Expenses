@@ -30,6 +30,12 @@ export default function SetupPage() {
       return;
     }
 
+    if (!data) {
+      setError("Failed to create household. Please try again.");
+      setLoading(false);
+      return;
+    }
+
     router.refresh();
     router.push("/");
   };
@@ -45,6 +51,12 @@ export default function SetupPage() {
 
     if (rpcError) {
       setError(rpcError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (!data) {
+      setError("Failed to join household. Please try again.");
       setLoading(false);
       return;
     }
