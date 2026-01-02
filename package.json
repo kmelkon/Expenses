@@ -5,7 +5,10 @@
     "dev:web": "pnpm --filter @expenses/web dev",
     "build:web": "pnpm --filter @expenses/web build",
     "start:mobile": "pnpm --filter @expenses/mobile start",
-    "lint": "pnpm -r lint"
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "test:shared": "pnpm --filter @expenses/shared test",
+    "test:web": "pnpm --filter @expenses/web test"
   },
   "devDependencies": {
     "typescript": "~5.9.2"

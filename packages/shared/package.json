@@ -10,10 +10,17 @@
     "./utils/money": "./src/utils/money.ts",
     "./utils/date": "./src/utils/date.ts"
   },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
   "dependencies": {
     "date-fns": "^4.1.0"
   },
   "devDependencies": {
-    "typescript": "~5.9.2"
+    "@vitest/coverage-v8": "^3.0.0",
+    "typescript": "~5.9.2",
+    "vitest": "^3.0.0"
   }
 }
