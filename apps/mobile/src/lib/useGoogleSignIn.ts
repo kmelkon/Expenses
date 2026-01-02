@@ -21,6 +21,19 @@ if (!webClientId || !iosClientId || !androidClientId) {
   throw new Error("Google OAuth client IDs are not configured.");
 }
 
+/**
+ * Provides a ready-to-use Google Sign-In flow integrated with Supabase for Expo apps.
+ *
+ * Manages OAuth request lifecycle, loading and error state, and exchanges a Google ID token
+ * with Supabase to authenticate the user. Errors are propagated to local state and the global
+ * auth store.
+ *
+ * @returns An object with:
+ *  - isReady - `true` if the Google OAuth request has been initialized and sign-in can be started.
+ *  - isLoading - `true` while a sign-in flow or token exchange is in progress.
+ *  - error - A human-readable error message when a problem occurs, or `null` when there is no error.
+ *  - signIn - Function to initiate the Google sign-in flow.
+ */
 export function useGoogleSignIn() {
   const setAuthError = useAuthStore((state) => state.setError);
   const [error, setError] = useState<string | null>(null);

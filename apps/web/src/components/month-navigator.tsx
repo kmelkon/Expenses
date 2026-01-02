@@ -8,6 +8,14 @@ interface MonthNavigatorProps {
   onNext: () => void;
 }
 
+/**
+ * Render a month navigator with previous/next controls and a centered formatted month label.
+ *
+ * @param currentMonth - The month identifier to display.
+ * @param onPrevious - Callback invoked when the previous button is clicked.
+ * @param onNext - Callback invoked when the next button is clicked.
+ * @returns A React element containing previous/next controls and the formatted month label; the Next control is disabled when `currentMonth` equals the current month.
+ */
 export function MonthNavigator({ currentMonth, onPrevious, onNext }: MonthNavigatorProps) {
   const isCurrentMonth = currentMonth === getCurrentMonth();
 

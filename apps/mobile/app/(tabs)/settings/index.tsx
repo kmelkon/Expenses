@@ -17,6 +17,15 @@ import {
 import { useAuthStore } from "../../../src/store/useAuthStore";
 import { Theme, useTheme } from "../../../src/theme";
 
+/**
+ * Renders the app settings screen with navigable settings, category management, and sign-out.
+ *
+ * Displays menu items for navigating to settings subsections, a categories section that lists existing
+ * categories and provides controls to add or delete categories, and a sign-out control that prompts
+ * for confirmation before signing the user out.
+ *
+ * @returns The Settings screen React element
+ */
 export default function Settings() {
   const router = useRouter();
   const theme = useTheme();

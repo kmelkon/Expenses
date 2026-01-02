@@ -16,6 +16,15 @@ interface DashboardProps {
   profile: ProfileRow;
 }
 
+/**
+ * Render the household dashboard with month navigation, expense list, totals, and controls for adding expenses.
+ *
+ * Fetches expenses, categories, and payers for the selected month and computes a summary (totals by person, totals by category, and grand total) whenever the current month changes.
+ *
+ * @param user - The current authenticated user
+ * @param profile - The user's household profile; `profile.household_id` is used to scope data queries
+ * @returns The dashboard's JSX element tree
+ */
 export function Dashboard({ user, profile }: DashboardProps) {
   const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
   const [expenses, setExpenses] = useState<ExpenseRow[]>([]);

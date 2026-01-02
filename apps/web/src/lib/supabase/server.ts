@@ -3,6 +3,16 @@ import { cookies } from "next/headers";
 
 type CookieToSet = { name: string; value: string; options?: CookieOptions };
 
+/**
+ * Create a Supabase server client configured to use Next.js server cookies.
+ *
+ * The client is initialized using NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.
+ * Its cookie adapter delegates reads to the Next.js server cookie store and attempts to write
+ * provided cookies; cookie write errors (for example when invoked from a Server Component)
+ * are ignored.
+ *
+ * @returns A Supabase client instance configured with server-side cookie handlers
+ */
 export async function createClient() {
   const cookieStore = await cookies();
 

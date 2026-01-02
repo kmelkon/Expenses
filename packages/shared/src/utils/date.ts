@@ -1,27 +1,28 @@
 import { addMonths, endOfMonth, format, subMonths } from "date-fns";
 
 /**
- * Convert a Date to YYYY-MM format
- * @param date - Date object
- * @returns String in YYYY-MM format
+ * Format a Date as `YYYY-MM`.
+ *
+ * @returns A string representing the year and month in `YYYY-MM` format
  */
 export function toYYYYMM(date: Date): string {
   return format(date, "yyyy-MM");
 }
 
 /**
- * Convert a Date to YYYY-MM-DD format
- * @param date - Date object
- * @returns String in YYYY-MM-DD format
+ * Format a Date as YYYY-MM-DD.
+ *
+ * @returns The date formatted as `YYYY-MM-DD`.
  */
 export function toYYYYMMDD(date: Date): string {
   return format(date, "yyyy-MM-dd");
 }
 
 /**
- * Get month boundaries for a given YYYY-MM string
- * @param yyyyMM - Month in YYYY-MM format
- * @returns Array with [startISO, endISO] for the month
+ * Return the start and end dates for the specified month.
+ *
+ * @param yyyyMM - Month in `YYYY-MM` format
+ * @returns A tuple with the month's start date and end date as `YYYY-MM-DD` strings: `[startDate, endDate]`
  */
 export function monthBounds(yyyyMM: string): [string, string] {
   const year = parseInt(yyyyMM.substring(0, 4));
@@ -64,8 +65,9 @@ export function getNextMonth(yyyyMM: string): string {
 }
 
 /**
- * Get current month in YYYY-MM format
- * @returns Current month in YYYY-MM format
+ * Return the current month in YYYY-MM format.
+ *
+ * @returns The current month formatted as `YYYY-MM`
  */
 export function getCurrentMonth(): string {
   return toYYYYMM(new Date());
@@ -80,9 +82,10 @@ export function getTodayYYYYMMDD(): string {
 }
 
 /**
- * Format a month string for display
- * @param yyyyMM - Month in YYYY-MM format
- * @returns Formatted month name (e.g., "October 2025")
+ * Formats a YYYY-MM month string for display as a full month name and year.
+ *
+ * @param yyyyMM - Month in `YYYY-MM` format
+ * @returns The month and year formatted for display (e.g., "October 2025")
  */
 export function formatMonthDisplay(yyyyMM: string): string {
   const year = parseInt(yyyyMM.substring(0, 4));
@@ -93,9 +96,10 @@ export function formatMonthDisplay(yyyyMM: string): string {
 }
 
 /**
- * Format a date for display in the expense list
- * @param yyyyMMDD - Date in YYYY-MM-DD format
- * @returns Formatted date (e.g., "Oct 15")
+ * Format a `YYYY-MM-DD` date string for display as a short month and day (e.g., "Oct 15").
+ *
+ * @param yyyyMMDD - Date string in `YYYY-MM-DD` format
+ * @returns The formatted date (for example, `Oct 15`)
  */
 export function formatExpenseDate(yyyyMMDD: string): string {
   const [year, month, day] = yyyyMMDD.split("-").map(Number);

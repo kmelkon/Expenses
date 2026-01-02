@@ -11,6 +11,13 @@ interface HeaderProps {
   profile: ProfileRow;
 }
 
+/**
+ * Renders the application header with the title, the current profile display name, a Settings link, and a Sign out control.
+ *
+ * @param user - The authenticated Supabase user (used for context about the current session).
+ * @param profile - The user's profile row; `profile.display_name` is shown in the header.
+ * @returns The header element containing the app title, profile display name, settings link, and sign-out button.
+ */
 export function Header({ user, profile }: HeaderProps) {
   const router = useRouter();
   const supabase = createClient();

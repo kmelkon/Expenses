@@ -2,6 +2,16 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
+/**
+ * Render the Settings page for the authenticated user's household and account.
+ *
+ * Loads the current user and their profile (including household data). Redirects to
+ * "/login" if no authenticated user is found and to "/setup" if the user has no
+ * associated household. When present, displays household details (name and join code),
+ * links to settings subpages (Categories, Payers), and account information (email and display name).
+ *
+ * @returns A JSX element representing the Settings page UI
+ */
 export default async function SettingsPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

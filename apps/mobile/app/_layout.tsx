@@ -10,6 +10,13 @@ import { useAuthStore } from "../src/store/useAuthStore";
 import { useSettingsStore } from "../src/store/useSettingsStore";
 import { ThemeProvider, useTheme } from "../src/theme";
 
+/**
+ * Sets up and initializes application-level resources then renders the root UI.
+ *
+ * Initializes the local database and loads settings, theme preference, and authentication state on mount, then provides theme and gesture handling wrappers around the main app shell.
+ *
+ * @returns The root React element containing the gesture handler root view, theme provider, and app shell.
+ */
 export default function RootLayout() {
   const loadSettings = useSettingsStore((state) => state.loadSettings);
   const loadThemePreference = useAppearanceStore(
@@ -41,6 +48,13 @@ export default function RootLayout() {
   );
 }
 
+/**
+ * Render the app's top-level UI, switching between hydration, authentication, and main navigation states.
+ *
+ * Renders a centered loading indicator while authentication state is hydrating, the sign-in screen when there is no authenticated session, or the main navigation stack (tabs and modal screens) when a session exists. Uses current theme values for background, status bar, and header styling.
+ *
+ * @returns A React element that displays either the hydration indicator, the sign-in flow, or the main app navigation stack depending on auth state.
+ */
 function AppShell() {
   const theme = useTheme();
   const session = useAuthStore((state) => state.session);

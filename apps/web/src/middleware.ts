@@ -1,6 +1,12 @@
 import { type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
+/**
+ * Delegates the incoming Next.js request to updateSession to update the user's session state.
+ *
+ * @param request - The incoming NextRequest from the Next.js middleware pipeline
+ * @returns A Next.js response representing the result of the session update
+ */
 export async function middleware(request: NextRequest) {
   return await updateSession(request);
 }

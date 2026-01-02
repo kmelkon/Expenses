@@ -10,6 +10,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { useGoogleSignIn } from "../../lib/useGoogleSignIn";
 import { Theme, useTheme } from "../../theme";
 
+/**
+ * Renders the sign-in screen with a Google authentication button and optional error display.
+ *
+ * Shows a centered card containing a title, subtitle, and a "Continue with Google" button.
+ * The button is disabled while the sign-in flow is not ready or when a sign-in is in progress;
+ * it displays a spinner during loading and the Google logo otherwise. Any authentication
+ * error returned by the sign-in hook is rendered below the button.
+ *
+ * @returns The React element for the sign-in screen.
+ */
 export function SignInScreen() {
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);

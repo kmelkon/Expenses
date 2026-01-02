@@ -7,6 +7,14 @@ import { useRouter } from "next/navigation";
 import type { PayerRow, ProfileRow } from "@expenses/shared";
 import { Input, Label } from "@/components/ui";
 
+/**
+ * Page component for managing payer records within the current user's household.
+ *
+ * Renders a list of existing payers and UI to add, edit, or delete payers. Redirects to
+ * /login when the user is unauthenticated and to /setup when the user's profile lacks a household.
+ *
+ * @returns A React element rendering the payers management interface (list, add form, and inline edit/delete controls).
+ */
 export default function PayersPage() {
   const [payers, setPayers] = useState<PayerRow[]>([]);
   const [newPayerId, setNewPayerId] = useState("");
