@@ -21,6 +21,7 @@ export function AddExpenseButton({ categories, payers, householdId, onAdded }: A
   const [date, setDate] = useState(getTodayYYYYMMDD());
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const supabase = createClient();
 
@@ -34,25 +35,38 @@ export function AddExpenseButton({ categories, payers, householdId, onAdded }: A
     }
 
     setLoading(true);
+    setError(null);
 
-    const id = `exp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    try {
+      const id = `exp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    await supabase.from("expenses").insert({
-      id,
-      household_id: householdId,
-      amount_cents: amountCents,
-      paid_by: paidBy,
-      date,
-      note: note || null,
-      category,
-    });
+      const { error: insertError } = await supabase.from("expenses").insert({
+        id,
+        household_id: householdId,
+        amount_cents: amountCents,
+        paid_by: paidBy,
+        date,
+        note: note || null,
+        category,
+      });
 
-    setAmount("");
-    setNote("");
-    setDate(getTodayYYYYMMDD());
-    setIsOpen(false);
-    setLoading(false);
-    onAdded();
+      if (insertError) {
+        setError(insertError.message || "Failed to add expense");
+        setLoading(false);
+        return;
+      }
+
+      setAmount("");
+      setNote("");
+      setDate(getTodayYYYYMMDD());
+      setError(null);
+      setIsOpen(false);
+      setLoading(false);
+      onAdded();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unexpected error occurred");
+      setLoading(false);
+    }
   };
 
   return (
@@ -73,7 +87,7 @@ export function AddExpenseButton({ categories, payers, householdId, onAdded }: A
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">Add Expense</h2>
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={() => { setIsOpen(false); setError(null); }}
                 className="p-2 hover:bg-gray-100 rounded-lg"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -81,6 +95,12 @@ export function AddExpenseButton({ categories, payers, householdId, onAdded }: A
                 </svg>
               </button>
             </div>
+
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                {error}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
