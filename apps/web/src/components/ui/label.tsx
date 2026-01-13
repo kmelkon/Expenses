@@ -1,13 +1,18 @@
 import { forwardRef, type LabelHTMLAttributes } from "react";
+import { cn } from "@/lib/utils";
 
 export interface LabelProps extends LabelHTMLAttributes<HTMLLabelElement> {}
 
-export const Label = forwardRef<HTMLLabelElement, LabelProps>(
-  ({ className = "", ...props }, ref) => {
+const Label = forwardRef<HTMLLabelElement, LabelProps>(
+  ({ className, ...props }, ref) => {
     return (
       <label
         ref={ref}
-        className={`block text-sm font-medium text-gray-700 mb-1 ${className}`}
+        className={cn(
+          "text-sm font-medium text-[var(--warm-700)] leading-none",
+          "peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+          className
+        )}
         {...props}
       />
     );
@@ -15,3 +20,5 @@ export const Label = forwardRef<HTMLLabelElement, LabelProps>(
 );
 
 Label.displayName = "Label";
+
+export { Label };

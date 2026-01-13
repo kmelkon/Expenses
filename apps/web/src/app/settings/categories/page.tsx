@@ -5,7 +5,10 @@ import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { CategoryRow, ProfileRow } from "@expenses/shared";
-import { Input } from "@/components/ui";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ChevronRight, Loader2, Trash2, Plus } from "@/components/ui/icons";
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<CategoryRow[]>([]);
@@ -98,72 +101,92 @@ export default function CategoriesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-[var(--terracotta-500)] animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
-          <Link href="/settings" className="text-gray-500 hover:text-gray-700">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+    <div className="min-h-screen bg-[var(--background)]">
+      {/* Header */}
+      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-[var(--warm-200)]">
+        <div className="max-w-4xl mx-auto px-4 h-14 flex items-center gap-4">
+          <Link
+            href="/settings"
+            className="p-2 -ml-2 text-[var(--warm-500)] hover:text-[var(--warm-700)] hover:bg-[var(--warm-100)] rounded-full transition-colors"
+          >
+            <ChevronRight className="w-5 h-5 rotate-180" />
           </Link>
-          <h1 className="text-xl font-bold text-gray-900">Categories</h1>
+          <h1 className="text-lg font-bold text-[var(--warm-900)]">Categories</h1>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Add Category Form */}
-        <form onSubmit={handleAddCategory} className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Add Category</h2>
-          <div className="flex gap-3">
-            <Input
-              type="text"
-              value={newCategoryName}
-              onChange={e => setNewCategoryName(e.target.value)}
-              placeholder="Category name"
-              className="flex-1"
-            />
-            <button
-              type="submit"
-              disabled={saving || !newCategoryName.trim()}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
-            >
-              {saving ? "Adding..." : "Add"}
-            </button>
-          </div>
-        </form>
+        <Card>
+          <CardHeader>
+            <CardTitle>Add Category</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleAddCategory} className="flex gap-3">
+              <Input
+                type="text"
+                value={newCategoryName}
+                onChange={e => setNewCategoryName(e.target.value)}
+                placeholder="Category name"
+                className="flex-1"
+              />
+              <Button
+                type="submit"
+                disabled={saving || !newCategoryName.trim()}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                {saving ? "Adding..." : "Add"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
 
         {/* Categories List */}
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <h2 className="text-lg font-semibold text-gray-900 px-6 py-4 border-b border-gray-100">
-            All Categories ({categories.length})
-          </h2>
-          {categories.length === 0 ? (
-            <p className="px-6 py-8 text-center text-gray-500">
-              No categories yet. Add one above.
-            </p>
-          ) : (
-            <ul className="divide-y divide-gray-100">
-              {categories.map(category => (
-                <li key={category.id} className="flex items-center justify-between px-6 py-4">
-                  <span className="text-gray-900">{category.name}</span>
-                  <button
-                    onClick={() => handleDeleteCategory(category)}
-                    className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+        <Card>
+          <CardHeader>
+            <CardTitle>All Categories ({categories.length})</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {categories.length === 0 ? (
+              <p className="px-6 py-8 text-center text-[var(--warm-500)]">
+                No categories yet. Add one above.
+              </p>
+            ) : (
+              <ul className="divide-y divide-[var(--warm-100)]">
+                {categories.map(category => (
+                  <li
+                    key={category.id}
+                    className="flex items-center justify-between px-6 py-4 hover:bg-[var(--warm-50)] transition-colors"
                   >
-                    Delete
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+                    <div className="flex items-center gap-3">
+                      <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[var(--sage-100)] text-[var(--sage-700)] text-sm font-medium">
+                        {category.name.charAt(0).toUpperCase()}
+                      </span>
+                      <span className="text-[var(--warm-900)] font-medium">
+                        {category.name}
+                      </span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteCategory(category)}
+                      className="text-[var(--warm-400)] hover:text-[var(--color-error)] hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
       </main>
     </div>
   );
