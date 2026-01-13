@@ -1,20 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { CategoryRow, PayerRow } from "@expenses/shared";
 import { parseAmountInput, getTodayYYYYMMDD } from "@expenses/shared";
-import { Input, Select, Label } from "@/components/ui";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import { Avatar } from "@/components/ui/avatar";
+import { AlertCircle } from "@/components/ui/icons";
+import { cn } from "@/lib/utils";
 
 interface AddExpenseButtonProps {
   categories: CategoryRow[];
   payers: PayerRow[];
   householdId: string;
   onAdded: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function AddExpenseButton({ categories, payers, householdId, onAdded }: AddExpenseButtonProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function AddExpenseButton({
+  categories,
+  payers,
+  householdId,
+  onAdded,
+  open,
+  onOpenChange,
+}: AddExpenseButtonProps) {
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState(categories[0]?.name || "");
   const [paidBy, setPaidBy] = useState(payers[0]?.id || "");
@@ -25,12 +51,24 @@ export function AddExpenseButton({ categories, payers, householdId, onAdded }: A
 
   const supabase = createClient();
 
+  // Reset form when modal opens
+  useEffect(() => {
+    if (open) {
+      setAmount("");
+      setNote("");
+      setDate(getTodayYYYYMMDD());
+      setCategory(categories[0]?.name || "");
+      setPaidBy(payers[0]?.id || "");
+      setError(null);
+    }
+  }, [open, categories, payers]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const amountCents = parseAmountInput(amount);
     if (!amountCents) {
-      alert("Please enter a valid amount");
+      setError("Please enter a valid amount");
       return;
     }
 
@@ -56,12 +94,8 @@ export function AddExpenseButton({ categories, payers, householdId, onAdded }: A
         return;
       }
 
-      setAmount("");
-      setNote("");
-      setDate(getTodayYYYYMMDD());
-      setError(null);
-      setIsOpen(false);
       setLoading(false);
+      onOpenChange?.(false);
       onAdded();
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred");
@@ -70,117 +104,120 @@ export function AddExpenseButton({ categories, payers, householdId, onAdded }: A
   };
 
   return (
-    <>
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
-        aria-label="Add expense"
-      >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-        </svg>
-      </button>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Add Expense</DialogTitle>
+        </DialogHeader>
 
-      {isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50">
-          <div className="bg-white w-full sm:max-w-md sm:rounded-lg rounded-t-xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Add Expense</h2>
-              <button
-                onClick={() => { setIsOpen(false); setError(null); }}
-                className="p-2 hover:bg-gray-100 rounded-lg"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="amount">Amount (SEK)</Label>
-                <Input
-                  id="amount"
-                  type="text"
-                  inputMode="decimal"
-                  value={amount}
-                  onChange={e => setAmount(e.target.value)}
-                  placeholder="0.00"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="category">Category</Label>
-                <Select
-                  id="category"
-                  value={category}
-                  onChange={e => setCategory(e.target.value)}
-                >
-                  {categories.map(cat => (
-                    <option key={cat.id} value={cat.name}>{cat.name}</option>
-                  ))}
-                </Select>
-              </div>
-
-              <div>
-                <Label>Paid by</Label>
-                <div className="flex gap-2">
-                  {payers.map(payer => (
-                    <button
-                      key={payer.id}
-                      type="button"
-                      onClick={() => setPaidBy(payer.id)}
-                      className={`flex-1 py-2 px-4 rounded-lg border transition-colors ${
-                        paidBy === payer.id
-                          ? "bg-blue-600 text-white border-blue-600"
-                          : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                      }`}
-                    >
-                      {payer.display_name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="date">Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={date}
-                  onChange={e => setDate(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="note">Note (optional)</Label>
-                <Input
-                  id="note"
-                  type="text"
-                  value={note}
-                  onChange={e => setNote(e.target.value)}
-                  placeholder="What was this for?"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
-              >
-                {loading ? "Adding..." : "Add Expense"}
-              </button>
-            </form>
+        {error && (
+          <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-[var(--radius-md)] text-red-700 text-sm">
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            {error}
           </div>
-        </div>
-      )}
-    </>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Amount */}
+          <div className="space-y-2">
+            <Label htmlFor="amount">Amount (SEK)</Label>
+            <Input
+              id="amount"
+              type="text"
+              inputMode="decimal"
+              value={amount}
+              onChange={e => setAmount(e.target.value)}
+              placeholder="0.00"
+              required
+              autoFocus
+            />
+          </div>
+
+          {/* Category */}
+          <div className="space-y-2">
+            <Label>Category</Label>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map(cat => (
+                  <SelectItem key={cat.id} value={cat.name}>
+                    {cat.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Paid by */}
+          <div className="space-y-2">
+            <Label>Paid by</Label>
+            <div className="flex gap-3">
+              {payers.map(payer => (
+                <button
+                  key={payer.id}
+                  type="button"
+                  onClick={() => setPaidBy(payer.id)}
+                  className={cn(
+                    "flex-1 py-3 px-4 rounded-[var(--radius-lg)] border-2 transition-all",
+                    "flex flex-col items-center gap-2",
+                    "hover:bg-[var(--warm-50)] active:scale-[0.98]",
+                    paidBy === payer.id
+                      ? "border-[var(--terracotta-500)] bg-[var(--terracotta-50)]"
+                      : "border-[var(--warm-200)] bg-white"
+                  )}
+                >
+                  <Avatar name={payer.display_name} size="sm" />
+                  <span
+                    className={cn(
+                      "text-sm font-medium",
+                      paidBy === payer.id
+                        ? "text-[var(--terracotta-700)]"
+                        : "text-[var(--warm-700)]"
+                    )}
+                  >
+                    {payer.display_name}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Date */}
+          <div className="space-y-2">
+            <Label htmlFor="date">Date</Label>
+            <Input
+              id="date"
+              type="date"
+              value={date}
+              onChange={e => setDate(e.target.value)}
+            />
+          </div>
+
+          {/* Note */}
+          <div className="space-y-2">
+            <Label htmlFor="note">Note (optional)</Label>
+            <Input
+              id="note"
+              type="text"
+              value={note}
+              onChange={e => setNote(e.target.value)}
+              placeholder="What was this for?"
+            />
+          </div>
+
+          {/* Submit Button */}
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full"
+            size="lg"
+          >
+            {loading ? "Adding..." : "Add Expense"}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

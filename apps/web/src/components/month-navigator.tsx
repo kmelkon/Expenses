@@ -1,40 +1,75 @@
 "use client";
 
+import { useState } from "react";
 import { formatMonthDisplay, getCurrentMonth } from "@expenses/shared";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight, Calendar } from "@/components/ui/icons";
+import { MonthPicker } from "@/components/month-picker";
+import { cn } from "@/lib/utils";
 
 interface MonthNavigatorProps {
   currentMonth: string;
   onPrevious: () => void;
   onNext: () => void;
+  onSelectMonth?: (month: string) => void;
 }
 
-export function MonthNavigator({ currentMonth, onPrevious, onNext }: MonthNavigatorProps) {
+export function MonthNavigator({
+  currentMonth,
+  onPrevious,
+  onNext,
+  onSelectMonth,
+}: MonthNavigatorProps) {
+  const [pickerOpen, setPickerOpen] = useState(false);
   const isCurrentMonth = currentMonth === getCurrentMonth();
 
+  const handleSelectMonth = (month: string) => {
+    onSelectMonth?.(month);
+  };
+
   return (
-    <div className="flex items-center justify-between mb-6 bg-white rounded-lg shadow-sm p-4">
-      <button
-        onClick={onPrevious}
-        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-        aria-label="Previous month"
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
-      <h2 className="text-lg font-semibold text-gray-900">
-        {formatMonthDisplay(currentMonth)}
-      </h2>
-      <button
-        onClick={onNext}
-        disabled={isCurrentMonth}
-        className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-        aria-label="Next month"
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
-    </div>
+    <>
+      <div className="flex items-center justify-between mb-6 bg-white rounded-[var(--radius-lg)] shadow-[var(--shadow-sm)] p-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onPrevious}
+          aria-label="Previous month"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
+
+        <button
+          onClick={() => setPickerOpen(true)}
+          className={cn(
+            "flex items-center gap-2 px-4 py-2 rounded-[var(--radius-pill)]",
+            "text-lg font-semibold text-[var(--warm-900)]",
+            "hover:bg-[var(--warm-100)] active:scale-[0.98] transition-all",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]"
+          )}
+          aria-label="Open month picker"
+        >
+          <Calendar className="h-4 w-4 text-[var(--warm-500)]" />
+          {formatMonthDisplay(currentMonth)}
+        </button>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onNext}
+          disabled={isCurrentMonth}
+          aria-label="Next month"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </Button>
+      </div>
+
+      <MonthPicker
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        selectedMonth={currentMonth}
+        onSelectMonth={handleSelectMonth}
+      />
+    </>
   );
 }

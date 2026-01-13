@@ -4,12 +4,13 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import type { ProfileRow, ExpenseRow, MonthSummary, CategoryRow, PayerRow } from "@expenses/shared";
-import { formatAmount, getCurrentMonth, formatMonthDisplay, getPreviousMonth, getNextMonth } from "@expenses/shared";
+import { getCurrentMonth, getPreviousMonth, getNextMonth } from "@expenses/shared";
 import { ExpenseList } from "./expense-list";
 import { MonthNavigator } from "./month-navigator";
 import { TotalsTable } from "./totals-table";
 import { AddExpenseButton } from "./add-expense-button";
-import { Header } from "./header";
+import { AppShell } from "./layout/app-shell";
+import { Loader2 } from "@/components/ui/icons";
 
 interface DashboardProps {
   user: User;
@@ -23,6 +24,7 @@ export function Dashboard({ user, profile }: DashboardProps) {
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [payers, setPayers] = useState<PayerRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [addModalOpen, setAddModalOpen] = useState(false);
 
   const supabase = createClient();
 
@@ -99,38 +101,41 @@ export function Dashboard({ user, profile }: DashboardProps) {
   const handleNextMonth = () => setCurrentMonth(getNextMonth(currentMonth));
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header user={user} profile={profile} />
+    <AppShell
+      title="Expenses"
+      userName={profile.display_name}
+      onAddClick={() => setAddModalOpen(true)}
+    >
+      <MonthNavigator
+        currentMonth={currentMonth}
+        onPrevious={handlePreviousMonth}
+        onNext={handleNextMonth}
+        onSelectMonth={setCurrentMonth}
+      />
 
-      <main className="max-w-4xl mx-auto px-4 py-6">
-        <MonthNavigator
-          currentMonth={currentMonth}
-          onPrevious={handlePreviousMonth}
-          onNext={handleNextMonth}
-        />
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="h-8 w-8 text-[var(--terracotta-500)] animate-spin" />
+        </div>
+      ) : (
+        <>
+          {summary && <TotalsTable summary={summary} payers={payers} />}
+          <ExpenseList
+            expenses={expenses}
+            payers={payers}
+            onRefresh={loadData}
+          />
+        </>
+      )}
 
-        {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-        ) : (
-          <>
-            {summary && <TotalsTable summary={summary} payers={payers} />}
-            <ExpenseList
-              expenses={expenses}
-              payers={payers}
-              onRefresh={loadData}
-            />
-          </>
-        )}
-
-        <AddExpenseButton
-          categories={categories}
-          payers={payers}
-          householdId={profile.household_id!}
-          onAdded={loadData}
-        />
-      </main>
-    </div>
+      <AddExpenseButton
+        categories={categories}
+        payers={payers}
+        householdId={profile.household_id!}
+        onAdded={loadData}
+        open={addModalOpen}
+        onOpenChange={setAddModalOpen}
+      />
+    </AppShell>
   );
 }

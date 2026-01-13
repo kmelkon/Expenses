@@ -1,26 +1,260 @@
 @import "tailwindcss";
 
+/* ============================================
+   TERRACOTTA & SAGE DESIGN SYSTEM
+   Warm & Organic palette for couples expense tracking
+   ============================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Background & Foreground */
+  --background: #fdfcfa;
+  --foreground: #534a42;
+
+  /* Primary - Terracotta */
+  --terracotta-50: #fdf5f3;
+  --terracotta-100: #fbe9e4;
+  --terracotta-200: #f8d5cc;
+  --terracotta-300: #f2b8a8;
+  --terracotta-400: #e89075;
+  --terracotta-500: #d96b4a;
+  --terracotta-600: #c5523b;
+  --terracotta-700: #a5422f;
+  --terracotta-800: #883a2c;
+  --terracotta-900: #71342a;
+
+  /* Secondary - Sage */
+  --sage-50: #f6f7f4;
+  --sage-100: #e9ebe3;
+  --sage-200: #d4d8c8;
+  --sage-300: #b8c0a5;
+  --sage-400: #99a481;
+  --sage-500: #7c8a62;
+  --sage-600: #616e4d;
+  --sage-700: #4d573e;
+  --sage-800: #404734;
+  --sage-900: #373d2e;
+
+  /* Neutrals - Warm */
+  --warm-50: #fdfcfa;
+  --warm-100: #f7f5f0;
+  --warm-200: #ede9e0;
+  --warm-300: #ddd7ca;
+  --warm-400: #c4bba8;
+  --warm-500: #a99d87;
+  --warm-600: #8f8270;
+  --warm-700: #766a5a;
+  --warm-800: #62584d;
+  --warm-900: #534a42;
+
+  /* Semantic Colors */
+  --color-primary: var(--terracotta-500);
+  --color-primary-hover: var(--terracotta-600);
+  --color-primary-light: var(--terracotta-100);
+  --color-secondary: var(--sage-500);
+  --color-secondary-hover: var(--sage-600);
+  --color-secondary-light: var(--sage-100);
+  --color-muted: var(--warm-500);
+  --color-muted-foreground: var(--warm-600);
+  --color-border: var(--warm-200);
+  --color-ring: var(--terracotta-400);
+
+  /* Status Colors */
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-error: #ef4444;
+
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-card: 24px;
+  --radius-modal: 32px;
+  --radius-pill: 9999px;
+
+  /* Shadows (warm-tinted) */
+  --shadow-sm: 0 2px 8px rgba(83, 74, 66, 0.06);
+  --shadow-md: 0 4px 16px rgba(83, 74, 66, 0.08);
+  --shadow-lg: 0 8px 32px rgba(83, 74, 66, 0.12);
+  --shadow-float: 0 12px 40px rgba(83, 74, 66, 0.15);
+
+  /* Animation Easings */
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Animation Durations */
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 350ms;
+
+  /* Spacing Scale (for reference) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
 }
 
+/* Tailwind CSS v4 Theme Integration */
 @theme inline {
+  /* Colors */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  /* Terracotta palette */
+  --color-terracotta-50: var(--terracotta-50);
+  --color-terracotta-100: var(--terracotta-100);
+  --color-terracotta-200: var(--terracotta-200);
+  --color-terracotta-300: var(--terracotta-300);
+  --color-terracotta-400: var(--terracotta-400);
+  --color-terracotta-500: var(--terracotta-500);
+  --color-terracotta-600: var(--terracotta-600);
+  --color-terracotta-700: var(--terracotta-700);
+  --color-terracotta-800: var(--terracotta-800);
+  --color-terracotta-900: var(--terracotta-900);
+
+  /* Sage palette */
+  --color-sage-50: var(--sage-50);
+  --color-sage-100: var(--sage-100);
+  --color-sage-200: var(--sage-200);
+  --color-sage-300: var(--sage-300);
+  --color-sage-400: var(--sage-400);
+  --color-sage-500: var(--sage-500);
+  --color-sage-600: var(--sage-600);
+  --color-sage-700: var(--sage-700);
+  --color-sage-800: var(--sage-800);
+  --color-sage-900: var(--sage-900);
+
+  /* Warm neutral palette */
+  --color-warm-50: var(--warm-50);
+  --color-warm-100: var(--warm-100);
+  --color-warm-200: var(--warm-200);
+  --color-warm-300: var(--warm-300);
+  --color-warm-400: var(--warm-400);
+  --color-warm-500: var(--warm-500);
+  --color-warm-600: var(--warm-600);
+  --color-warm-700: var(--warm-700);
+  --color-warm-800: var(--warm-800);
+  --color-warm-900: var(--warm-900);
+
+  /* Typography */
+  --font-sans: var(--font-nunito);
+
+  /* Border Radius */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-pill: var(--radius-pill);
+
+  /* Shadows */
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Base Styles */
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+}
+
+/* Micro-interaction Keyframes */
+@keyframes bounce-in {
+  0% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Utility Classes for Animations */
+.animate-bounce-in {
+  animation: bounce-in var(--duration-normal) var(--ease-bounce);
+}
+
+.animate-slide-up {
+  animation: slide-up var(--duration-normal) var(--ease-smooth);
+}
+
+.animate-fade-in {
+  animation: fade-in var(--duration-fast) var(--ease-smooth);
+}
+
+/* Focus Ring Utility */
+.focus-ring {
+  outline: none;
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+/* Card Floating Effect */
+.card-float {
+  background: white;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
+  transition: transform var(--duration-fast) var(--ease-smooth),
+              box-shadow var(--duration-fast) var(--ease-smooth);
+}
+
+.card-float:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Button Press Effect */
+.btn-press {
+  transition: transform var(--duration-fast) var(--ease-bounce);
+}
+
+.btn-press:hover {
+  transform: scale(1.02);
+}
+
+.btn-press:active {
+  transform: scale(0.98);
 }

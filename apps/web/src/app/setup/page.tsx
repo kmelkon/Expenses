@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { Input, Label } from "@/components/ui";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Users, Plus, ArrowLeft, AlertCircle } from "@/components/ui/icons";
 
 export default function SetupPage() {
   const [mode, setMode] = useState<"create" | "join" | null>(null);
@@ -66,105 +70,153 @@ export default function SetupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Welcome!</h1>
-          <p className="mt-2 text-gray-600">
-            Set up your household to start tracking expenses
-          </p>
-        </div>
-
-        {!mode && (
-          <div className="space-y-4">
-            <button
-              onClick={() => setMode("create")}
-              className="w-full py-4 px-6 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-            >
-              Create a new household
-            </button>
-            <button
-              onClick={() => setMode("join")}
-              className="w-full py-4 px-6 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-            >
-              Join an existing household
-            </button>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[var(--terracotta-50)] via-[var(--warm-50)] to-[var(--sage-50)] px-4">
+      <div className="max-w-md w-full">
+        <Card className="p-8">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold text-[var(--warm-900)]">
+              Welcome!
+            </h1>
+            <p className="mt-2 text-[var(--warm-600)]">
+              Set up your household to start tracking expenses
+            </p>
           </div>
-        )}
 
-        {mode === "create" && (
-          <form onSubmit={handleCreate} className="space-y-4">
-            <div>
-              <Label htmlFor="householdName">Household name</Label>
-              <Input
-                id="householdName"
-                type="text"
-                value={householdName}
-                onChange={e => setHouseholdName(e.target.value)}
-                placeholder="e.g., Smith Family"
-                required
-              />
-            </div>
-
-            {error && (
-              <p className="text-red-500 text-sm">{error}</p>
-            )}
-
-            <div className="flex gap-3">
+          {/* Mode Selection */}
+          {!mode && (
+            <div className="space-y-4">
               <button
-                type="button"
-                onClick={() => setMode(null)}
-                className="flex-1 py-2 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                onClick={() => setMode("create")}
+                className="w-full p-5 rounded-[var(--radius-lg)] border-2 border-[var(--warm-200)] hover:border-[var(--terracotta-300)] hover:bg-[var(--terracotta-50)] transition-all text-left group"
               >
-                Back
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-[var(--terracotta-100)] flex items-center justify-center group-hover:bg-[var(--terracotta-200)] transition-colors">
+                    <Plus className="w-6 h-6 text-[var(--terracotta-600)]" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-[var(--warm-900)]">
+                      Create a new household
+                    </p>
+                    <p className="text-sm text-[var(--warm-500)]">
+                      Start fresh and invite your partner
+                    </p>
+                  </div>
+                </div>
               </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex-1 py-2 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
-              >
-                {loading ? "Creating..." : "Create"}
-              </button>
-            </div>
-          </form>
-        )}
 
-        {mode === "join" && (
-          <form onSubmit={handleJoin} className="space-y-4">
-            <div>
-              <Label htmlFor="joinCode">Join code</Label>
-              <Input
-                id="joinCode"
-                type="text"
-                value={joinCode}
-                onChange={e => setJoinCode(e.target.value)}
-                placeholder="Enter the code from your partner"
-                required
-              />
-            </div>
-
-            {error && (
-              <p className="text-red-500 text-sm">{error}</p>
-            )}
-
-            <div className="flex gap-3">
               <button
-                type="button"
-                onClick={() => setMode(null)}
-                className="flex-1 py-2 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                onClick={() => setMode("join")}
+                className="w-full p-5 rounded-[var(--radius-lg)] border-2 border-[var(--warm-200)] hover:border-[var(--sage-300)] hover:bg-[var(--sage-50)] transition-all text-left group"
               >
-                Back
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex-1 py-2 px-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
-              >
-                {loading ? "Joining..." : "Join"}
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-full bg-[var(--sage-100)] flex items-center justify-center group-hover:bg-[var(--sage-200)] transition-colors">
+                    <Users className="w-6 h-6 text-[var(--sage-600)]" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-[var(--warm-900)]">
+                      Join an existing household
+                    </p>
+                    <p className="text-sm text-[var(--warm-500)]">
+                      Enter a code from your partner
+                    </p>
+                  </div>
+                </div>
               </button>
             </div>
-          </form>
-        )}
+          )}
+
+          {/* Create Form */}
+          {mode === "create" && (
+            <form onSubmit={handleCreate} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="householdName">Household name</Label>
+                <Input
+                  id="householdName"
+                  type="text"
+                  value={householdName}
+                  onChange={e => setHouseholdName(e.target.value)}
+                  placeholder="e.g., Smith Family"
+                  required
+                  autoFocus
+                />
+              </div>
+
+              {error && (
+                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-[var(--radius-md)] text-red-700 text-sm">
+                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                  {error}
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setMode(null);
+                    setError("");
+                  }}
+                  className="flex-1"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
+                </Button>
+                <Button type="submit" disabled={loading} className="flex-1">
+                  {loading ? "Creating..." : "Create"}
+                </Button>
+              </div>
+            </form>
+          )}
+
+          {/* Join Form */}
+          {mode === "join" && (
+            <form onSubmit={handleJoin} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="joinCode">Join code</Label>
+                <Input
+                  id="joinCode"
+                  type="text"
+                  value={joinCode}
+                  onChange={e => setJoinCode(e.target.value)}
+                  placeholder="Enter the code from your partner"
+                  required
+                  autoFocus
+                />
+              </div>
+
+              {error && (
+                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-[var(--radius-md)] text-red-700 text-sm">
+                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                  {error}
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setMode(null);
+                    setError("");
+                  }}
+                  className="flex-1"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
+                </Button>
+                <Button
+                  type="submit"
+                  variant="secondary"
+                  disabled={loading}
+                  className="flex-1"
+                >
+                  {loading ? "Joining..." : "Join"}
+                </Button>
+              </div>
+            </form>
+          )}
+        </Card>
       </div>
     </div>
   );
