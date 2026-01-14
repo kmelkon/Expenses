@@ -42,15 +42,23 @@ export function MonthNavigator({
         <button
           onClick={() => setPickerOpen(true)}
           className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-[var(--radius-pill)]",
-            "text-lg font-semibold text-[var(--warm-900)]",
+            "flex items-center gap-3 px-4 py-2 rounded-[var(--radius-pill)]",
             "hover:bg-[var(--warm-100)] active:scale-[0.98] transition-all",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-ring)]"
           )}
           aria-label="Open month picker"
         >
-          <Calendar className="h-4 w-4 text-[var(--warm-500)]" />
-          {formatMonthDisplay(currentMonth)}
+          {/* Icon in circle */}
+          <div
+            className="w-8 h-8 rounded-full bg-[var(--terracotta-100)] flex items-center justify-center"
+            data-testid="calendar-icon-circle"
+          >
+            <Calendar className="h-4 w-4 text-[var(--terracotta-600)]" />
+          </div>
+          {/* Uppercase month label */}
+          <span className="text-sm font-semibold uppercase tracking-wider text-[var(--warm-700)]">
+            {formatMonthDisplay(currentMonth).toUpperCase()}
+          </span>
         </button>
 
         <Button

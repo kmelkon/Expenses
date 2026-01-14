@@ -40,3 +40,49 @@ export const parseAmountInput = (s: string): number | null => {
 export function centsToInputValue(cents: number): string {
   return (cents / 100).toFixed(2);
 }
+
+/**
+ * Split cents into main amount and decimal parts for styled display
+ * @param cents - Amount in cents
+ * @returns Object with main and decimal parts as strings
+ */
+export function splitAmount(cents: number): { main: string; decimal: string } {
+  const amount = cents / 100;
+  const [main, decimal = "00"] = amount.toFixed(2).split(".");
+  // Format main with Swedish locale (non-breaking space for thousands)
+  // Replace non-breaking space with regular space for consistency
+  const formattedMain = new Intl.NumberFormat("sv-SE", {
+    maximumFractionDigits: 0,
+  })
+    .format(parseInt(main))
+    .replace(/\u00A0/g, " ");
+  return {
+    main: formattedMain,
+    decimal: decimal,
+  };
+}
+
+export type TrendDirection = "up" | "down" | "neutral";
+
+/**
+ * Calculate percentage change between two values
+ * @param current - Current month total in cents
+ * @param previous - Previous month total in cents
+ * @returns Object with percentage change and direction
+ */
+export function calculateTrendPercentage(
+  current: number,
+  previous: number
+): { percentage: number; direction: TrendDirection } {
+  if (previous === 0) {
+    return { percentage: 0, direction: "neutral" };
+  }
+  const change = ((current - previous) / previous) * 100;
+  if (change === 0) {
+    return { percentage: 0, direction: "neutral" };
+  }
+  return {
+    percentage: Math.abs(Math.round(change)),
+    direction: change > 0 ? "up" : "down",
+  };
+}

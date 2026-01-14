@@ -13,7 +13,7 @@ vi.mock("@expenses/shared", () => ({
 }));
 
 describe("MonthNavigator", () => {
-  it("displays the formatted month name", () => {
+  it("displays the formatted month name in uppercase", () => {
     render(
       <MonthNavigator
         currentMonth="2025-06"
@@ -21,7 +21,7 @@ describe("MonthNavigator", () => {
         onNext={() => {}}
       />
     );
-    expect(screen.getByText("June 2025")).toBeInTheDocument();
+    expect(screen.getByText("JUNE 2025")).toBeInTheDocument();
   });
 
   it("calls onPrevious when previous button is clicked", () => {
@@ -68,5 +68,32 @@ describe("MonthNavigator", () => {
 
     const nextButton = screen.getByRole("button", { name: /next month/i });
     expect(nextButton).toBeDisabled();
+  });
+
+  it("shows calendar icon in a circle container", () => {
+    render(
+      <MonthNavigator
+        currentMonth="2025-06"
+        onPrevious={() => {}}
+        onNext={() => {}}
+      />
+    );
+    const iconContainer = screen.getByTestId("calendar-icon-circle");
+    expect(iconContainer).toHaveClass("rounded-full");
+    expect(iconContainer).toHaveClass("bg-[var(--terracotta-100)]");
+  });
+
+  it("shows month in uppercase format", () => {
+    render(
+      <MonthNavigator
+        currentMonth="2025-06"
+        onPrevious={() => {}}
+        onNext={() => {}}
+      />
+    );
+    // Should have uppercase styling
+    const monthLabel = screen.getByText("JUNE 2025");
+    expect(monthLabel).toBeInTheDocument();
+    expect(monthLabel).toHaveClass("uppercase");
   });
 });

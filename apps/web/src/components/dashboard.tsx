@@ -7,7 +7,7 @@ import type { ProfileRow, ExpenseRow, MonthSummary, CategoryRow, PayerRow } from
 import { getCurrentMonth, getPreviousMonth, getNextMonth } from "@expenses/shared";
 import { ExpenseList } from "./expense-list";
 import { MonthNavigator } from "./month-navigator";
-import { TotalsTable } from "./totals-table";
+import { HeroTotalCard } from "./hero-total-card";
 import { AddExpenseButton } from "./add-expense-button";
 import { AppShell } from "./layout/app-shell";
 import { Loader2 } from "@/components/ui/icons";
@@ -21,6 +21,7 @@ export function Dashboard({ user, profile }: DashboardProps) {
   const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
   const [expenses, setExpenses] = useState<ExpenseRow[]>([]);
   const [summary, setSummary] = useState<MonthSummary | null>(null);
+  const [previousMonthTotal, setPreviousMonthTotal] = useState<number | undefined>(undefined);
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [payers, setPayers] = useState<PayerRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,6 +42,14 @@ export function Dashboard({ user, profile }: DashboardProps) {
     const nextYear = month === 12 ? year + 1 : year;
     const endDate = `${nextYear}-${String(nextMonth).padStart(2, "0")}-01`;
 
+    // Calculate previous month date range
+    const prevMonth = getPreviousMonth(currentMonth);
+    const [prevYear, prevMonthNum] = prevMonth.split("-").map(Number);
+    const prevStartDate = `${prevMonth}-01`;
+    const prevNextMonth = prevMonthNum === 12 ? 1 : prevMonthNum + 1;
+    const prevNextYear = prevMonthNum === 12 ? prevYear + 1 : prevYear;
+    const prevEndDate = `${prevNextYear}-${String(prevNextMonth).padStart(2, "0")}-01`;
+
     // Fetch expenses for the month
     const { data: expensesData } = await supabase
       .from("expenses")
@@ -50,6 +59,15 @@ export function Dashboard({ user, profile }: DashboardProps) {
       .gte("date", startDate)
       .lt("date", endDate)
       .order("date", { ascending: false });
+
+    // Fetch previous month expenses for trend calculation
+    const { data: prevExpensesData } = await supabase
+      .from("expenses")
+      .select("amount_cents")
+      .eq("household_id", profile.household_id)
+      .eq("deleted", false)
+      .gte("date", prevStartDate)
+      .lt("date", prevEndDate);
 
     // Fetch categories and payers
     const [{ data: categoriesData }, { data: payersData }] = await Promise.all([
@@ -67,6 +85,10 @@ export function Dashboard({ user, profile }: DashboardProps) {
     setExpenses(expensesData || []);
     setCategories(categoriesData || []);
     setPayers(payersData || []);
+
+    // Calculate previous month total for trend
+    const prevTotal = prevExpensesData?.reduce((sum, e) => sum + e.amount_cents, 0);
+    setPreviousMonthTotal(prevTotal && prevTotal > 0 ? prevTotal : undefined);
 
     // Calculate summary
     if (expensesData) {
@@ -119,7 +141,13 @@ export function Dashboard({ user, profile }: DashboardProps) {
         </div>
       ) : (
         <>
-          {summary && <TotalsTable summary={summary} payers={payers} />}
+          {summary && (
+            <HeroTotalCard
+              summary={summary}
+              previousMonthTotal={previousMonthTotal}
+              payers={payers}
+            />
+          )}
           <ExpenseList
             expenses={expenses}
             payers={payers}

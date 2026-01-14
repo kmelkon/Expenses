@@ -63,13 +63,29 @@
   --color-warning: #fbbf24;
   --color-error: #ef4444;
 
+  /* Pastel Palette */
+  --pastel-mint: #DDF2D8;
+  --pastel-peach: #FAE5D3;
+  --pastel-blue: #D6EAF8;
+  --pastel-lavender: #E8DAEF;
+
+  /* Category Badge Colors */
+  --pastel-category-food: #FDE2E4;
+  --pastel-category-transport: #D4E6F1;
+  --pastel-category-utilities: #FCF3CF;
+  --pastel-category-entertainment: #E8DAEF;
+  --pastel-category-shopping: #D5F5E3;
+  --pastel-category-other: #F2F4F4;
+
   /* Border Radius */
   --radius-sm: 8px;
   --radius-md: 16px;
   --radius-lg: 24px;
   --radius-xl: 32px;
-  --radius-card: 24px;
-  --radius-modal: 32px;
+  --radius-2xl: 40px;
+  --radius-3xl: 48px;
+  --radius-card: 32px;
+  --radius-modal: 36px;
   --radius-pill: 9999px;
 
   /* Shadows (warm-tinted) */
@@ -141,6 +157,12 @@
   --color-warm-700: var(--warm-700);
   --color-warm-800: var(--warm-800);
   --color-warm-900: var(--warm-900);
+
+  /* Pastel palette */
+  --color-pastel-mint: var(--pastel-mint);
+  --color-pastel-peach: var(--pastel-peach);
+  --color-pastel-blue: var(--pastel-blue);
+  --color-pastel-lavender: var(--pastel-lavender);
 
   /* Typography */
   --font-sans: var(--font-nunito);
