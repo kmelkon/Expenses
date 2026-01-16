@@ -177,7 +177,7 @@ function SelectionView({
         {/* Start a Home Card */}
         <button
           onClick={onCreateClick}
-          className="group relative bg-white rounded-3xl p-10 flex flex-col items-center text-center transition-all duration-500 hover:shadow-2xl hover:shadow-pastel-mint/20 hover:-translate-y-1 border border-transparent hover:border-pastel-mint/50 overflow-hidden h-[420px]"
+          className="group relative bg-white rounded-3xl p-10 flex flex-col items-center text-center transition-all duration-500 hover:shadow-2xl hover:shadow-pastel-mint/20 hover:-translate-y-1 border border-transparent hover:border-pastel-mint/50 overflow-hidden h-[420px] cursor-pointer"
         >
           <div className="absolute inset-0 bg-gradient-to-b from-pastel-mint/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           <div className="relative w-48 h-48 mb-8 flex items-center justify-center">
@@ -187,7 +187,7 @@ function SelectionView({
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3 h-3 bg-accent-success rounded-full" />
               <div className="absolute bottom-4 right-8 w-2 h-2 bg-pastel-blue rounded-full" />
             </div>
-            <span className="material-symbols-outlined text-[80px] text-charcoal-text/80 relative z-10 group-hover:text-charcoal-text transition-colors duration-300">
+            <span className="material-symbols-outlined icon-xl text-charcoal-text/80 relative z-10 group-hover:text-charcoal-text transition-colors duration-300">
               potted_plant
             </span>
           </div>
@@ -210,7 +210,7 @@ function SelectionView({
         {/* Join a Home Card */}
         <button
           onClick={onJoinClick}
-          className="group relative bg-white rounded-3xl p-10 flex flex-col items-center text-center transition-all duration-500 hover:shadow-2xl hover:shadow-pastel-blue/20 hover:-translate-y-1 border border-transparent hover:border-pastel-blue/50 overflow-hidden h-[420px]"
+          className="group relative bg-white rounded-3xl p-10 flex flex-col items-center text-center transition-all duration-500 hover:shadow-2xl hover:shadow-pastel-blue/20 hover:-translate-y-1 border border-transparent hover:border-pastel-blue/50 overflow-hidden h-[420px] cursor-pointer"
         >
           <div className="absolute inset-0 bg-gradient-to-b from-pastel-blue/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           <div className="relative w-48 h-48 mb-8 flex items-center justify-center">
@@ -220,7 +220,7 @@ function SelectionView({
               <div className="absolute top-4 right-4 w-3 h-3 bg-accent-primary rounded-full" />
               <div className="absolute bottom-0 left-1/2 w-2 h-2 bg-pastel-lavender rounded-full" />
             </div>
-            <span className="material-symbols-outlined text-[80px] text-charcoal-text/80 relative z-10 group-hover:text-charcoal-text transition-colors duration-300">
+            <span className="material-symbols-outlined icon-xl text-charcoal-text/80 relative z-10 group-hover:text-charcoal-text transition-colors duration-300">
               key
             </span>
           </div>
@@ -370,7 +370,7 @@ function JoinView({
         <div className="relative z-10 flex flex-col items-center">
           {/* Icon */}
           <div className="h-20 w-20 bg-pastel-blue/20 text-accent-primary rounded-2xl flex items-center justify-center mb-6 shadow-sm ring-4 ring-white">
-            <span className="material-symbols-outlined text-[40px]">key</span>
+            <span className="material-symbols-outlined icon-lg">key</span>
           </div>
 
           {/* Heading */}

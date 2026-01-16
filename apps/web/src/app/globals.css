@@ -56,10 +56,24 @@ body {
 /* Material Symbols configuration */
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-size: inherit;
+  width: 1em;
+  height: 1em;
 }
 
 .material-symbols-outlined.filled {
   font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Large icon sizes */
+.icon-xl {
+  font-size: 80px !important;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+}
+
+.icon-lg {
+  font-size: 40px !important;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 40;
 }
 
 /* Heading typography */
