@@ -18,6 +18,8 @@ describe("SetupPage", () => {
   const mockPush = vi.fn();
   const mockRefresh = vi.fn();
   const mockRpc = vi.fn();
+  const mockGetUser = vi.fn();
+  const mockSignOut = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -25,46 +27,72 @@ describe("SetupPage", () => {
       push: mockPush,
       refresh: mockRefresh,
     } as any);
+    mockGetUser.mockResolvedValue({
+      data: { user: { user_metadata: { full_name: "Test User" } } },
+    });
+    mockSignOut.mockResolvedValue({ error: null });
     vi.mocked(createClient).mockReturnValue({
       rpc: mockRpc,
+      auth: {
+        getUser: mockGetUser,
+        signOut: mockSignOut,
+      },
     } as any);
   });
 
   describe("Initial Render", () => {
-    it("displays welcome message and both option buttons", () => {
+    it("displays welcome message and both option cards", async () => {
       render(<SetupPage />);
 
-      expect(screen.getByText("Welcome!")).toBeInTheDocument();
-      expect(screen.getByText("Create a new household")).toBeInTheDocument();
-      expect(screen.getByText("Join an existing household")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText(/Welcome/)).toBeInTheDocument();
+      });
+      expect(screen.getByText("Start a Home")).toBeInTheDocument();
+      expect(screen.getByText("Join a Home")).toBeInTheDocument();
     });
 
     it("does not show any form initially", () => {
       render(<SetupPage />);
 
-      expect(screen.queryByLabelText(/household name/i)).not.toBeInTheDocument();
-      expect(screen.queryByLabelText(/join code/i)).not.toBeInTheDocument();
+      expect(
+        screen.queryByPlaceholderText(/The Smith's Home/i)
+      ).not.toBeInTheDocument();
+      expect(screen.queryByPlaceholderText("------")).not.toBeInTheDocument();
+    });
+
+    it("displays user first name in welcome message", async () => {
+      render(<SetupPage />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Welcome, Test.")).toBeInTheDocument();
+      });
     });
   });
 
   describe("Create Household Flow", () => {
-    it("shows create form when clicking create button", () => {
+    it("shows create form when clicking Start a Home", async () => {
       render(<SetupPage />);
 
-      fireEvent.click(screen.getByText("Create a new household"));
+      fireEvent.click(screen.getByText("Start a Home"));
 
-      expect(screen.getByLabelText(/household name/i)).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /create/i })).toBeInTheDocument();
+      expect(
+        screen.getByPlaceholderText(/The Smith's Home/i)
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Create Home/i })
+      ).toBeInTheDocument();
     });
 
     it("returns to initial state when clicking back", () => {
       render(<SetupPage />);
 
-      fireEvent.click(screen.getByText("Create a new household"));
-      fireEvent.click(screen.getByText("Back"));
+      fireEvent.click(screen.getByText("Start a Home"));
+      fireEvent.click(screen.getByText("Back to options"));
 
-      expect(screen.getByText("Create a new household")).toBeInTheDocument();
-      expect(screen.queryByLabelText(/household name/i)).not.toBeInTheDocument();
+      expect(screen.getByText("Start a Home")).toBeInTheDocument();
+      expect(
+        screen.queryByPlaceholderText(/The Smith's Home/i)
+      ).not.toBeInTheDocument();
     });
 
     it("submits create household and redirects on success", async () => {
@@ -72,11 +100,11 @@ describe("SetupPage", () => {
 
       render(<SetupPage />);
 
-      fireEvent.click(screen.getByText("Create a new household"));
-      fireEvent.change(screen.getByLabelText(/household name/i), {
+      fireEvent.click(screen.getByText("Start a Home"));
+      fireEvent.change(screen.getByPlaceholderText(/The Smith's Home/i), {
         target: { value: "Test Family" },
       });
-      fireEvent.click(screen.getByRole("button", { name: /create/i }));
+      fireEvent.click(screen.getByRole("button", { name: /Create Home/i }));
 
       await waitFor(() => {
         expect(mockRpc).toHaveBeenCalledWith("create_household", {
@@ -95,11 +123,11 @@ describe("SetupPage", () => {
 
       render(<SetupPage />);
 
-      fireEvent.click(screen.getByText("Create a new household"));
-      fireEvent.change(screen.getByLabelText(/household name/i), {
+      fireEvent.click(screen.getByText("Start a Home"));
+      fireEvent.change(screen.getByPlaceholderText(/The Smith's Home/i), {
         target: { value: "Test Family" },
       });
-      fireEvent.click(screen.getByRole("button", { name: /create/i }));
+      fireEvent.click(screen.getByRole("button", { name: /Create Home/i }));
 
       await waitFor(() => {
         expect(screen.getByText("Database error")).toBeInTheDocument();
@@ -111,11 +139,11 @@ describe("SetupPage", () => {
 
       render(<SetupPage />);
 
-      fireEvent.click(screen.getByText("Create a new household"));
-      fireEvent.change(screen.getByLabelText(/household name/i), {
+      fireEvent.click(screen.getByText("Start a Home"));
+      fireEvent.change(screen.getByPlaceholderText(/The Smith's Home/i), {
         target: { value: "Test Family" },
       });
-      fireEvent.click(screen.getByRole("button", { name: /create/i }));
+      fireEvent.click(screen.getByRole("button", { name: /Create Home/i }));
 
       await waitFor(() => {
         expect(
@@ -134,14 +162,16 @@ describe("SetupPage", () => {
 
       render(<SetupPage />);
 
-      fireEvent.click(screen.getByText("Create a new household"));
-      fireEvent.change(screen.getByLabelText(/household name/i), {
+      fireEvent.click(screen.getByText("Start a Home"));
+      fireEvent.change(screen.getByPlaceholderText(/The Smith's Home/i), {
         target: { value: "Test Family" },
       });
-      fireEvent.click(screen.getByRole("button", { name: /create/i }));
+      fireEvent.click(screen.getByRole("button", { name: /Create Home/i }));
 
       expect(screen.getByText("Creating...")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /creating/i })).toBeDisabled();
+      expect(
+        screen.getByRole("button", { name: /Creating/i })
+      ).toBeDisabled();
 
       resolveRpc!({ data: "household-uuid", error: null });
 
@@ -152,23 +182,25 @@ describe("SetupPage", () => {
   });
 
   describe("Join Household Flow", () => {
-    it("shows join form when clicking join button", () => {
+    it("shows join form when clicking Join a Home", () => {
       render(<SetupPage />);
 
-      fireEvent.click(screen.getByText("Join an existing household"));
+      fireEvent.click(screen.getByText("Join a Home"));
 
-      expect(screen.getByLabelText(/join code/i)).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /join/i })).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("------")).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /Join Home/i })
+      ).toBeInTheDocument();
     });
 
     it("returns to initial state when clicking back", () => {
       render(<SetupPage />);
 
-      fireEvent.click(screen.getByText("Join an existing household"));
+      fireEvent.click(screen.getByText("Join a Home"));
       fireEvent.click(screen.getByText("Back"));
 
-      expect(screen.getByText("Join an existing household")).toBeInTheDocument();
-      expect(screen.queryByLabelText(/join code/i)).not.toBeInTheDocument();
+      expect(screen.getByText("Join a Home")).toBeInTheDocument();
+      expect(screen.queryByPlaceholderText("------")).not.toBeInTheDocument();
     });
 
     it("submits join household with lowercased code and redirects on success", async () => {
@@ -176,15 +208,15 @@ describe("SetupPage", () => {
 
       render(<SetupPage />);
 
-      fireEvent.click(screen.getByText("Join an existing household"));
-      fireEvent.change(screen.getByLabelText(/join code/i), {
-        target: { value: "ABC123XY" },
+      fireEvent.click(screen.getByText("Join a Home"));
+      fireEvent.change(screen.getByPlaceholderText("------"), {
+        target: { value: "ABC123" },
       });
-      fireEvent.click(screen.getByRole("button", { name: /join/i }));
+      fireEvent.click(screen.getByRole("button", { name: /Join Home/i }));
 
       await waitFor(() => {
         expect(mockRpc).toHaveBeenCalledWith("join_household", {
-          p_join_code: "abc123xy",
+          p_join_code: "abc123",
         });
         expect(mockRefresh).toHaveBeenCalled();
         expect(mockPush).toHaveBeenCalledWith("/");
@@ -199,11 +231,11 @@ describe("SetupPage", () => {
 
       render(<SetupPage />);
 
-      fireEvent.click(screen.getByText("Join an existing household"));
-      fireEvent.change(screen.getByLabelText(/join code/i), {
-        target: { value: "invalid" },
+      fireEvent.click(screen.getByText("Join a Home"));
+      fireEvent.change(screen.getByPlaceholderText("------"), {
+        target: { value: "BADCOD" },
       });
-      fireEvent.click(screen.getByRole("button", { name: /join/i }));
+      fireEvent.click(screen.getByRole("button", { name: /Join Home/i }));
 
       await waitFor(() => {
         expect(screen.getByText("Invalid join code")).toBeInTheDocument();
@@ -215,11 +247,11 @@ describe("SetupPage", () => {
 
       render(<SetupPage />);
 
-      fireEvent.click(screen.getByText("Join an existing household"));
-      fireEvent.change(screen.getByLabelText(/join code/i), {
-        target: { value: "validcode" },
+      fireEvent.click(screen.getByText("Join a Home"));
+      fireEvent.change(screen.getByPlaceholderText("------"), {
+        target: { value: "ABCDEF" },
       });
-      fireEvent.click(screen.getByRole("button", { name: /join/i }));
+      fireEvent.click(screen.getByRole("button", { name: /Join Home/i }));
 
       await waitFor(() => {
         expect(
@@ -238,19 +270,34 @@ describe("SetupPage", () => {
 
       render(<SetupPage />);
 
-      fireEvent.click(screen.getByText("Join an existing household"));
-      fireEvent.change(screen.getByLabelText(/join code/i), {
-        target: { value: "testcode" },
+      fireEvent.click(screen.getByText("Join a Home"));
+      fireEvent.change(screen.getByPlaceholderText("------"), {
+        target: { value: "ABCDEF" },
       });
-      fireEvent.click(screen.getByRole("button", { name: /join/i }));
+      fireEvent.click(screen.getByRole("button", { name: /Join Home/i }));
 
       expect(screen.getByText("Joining...")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /joining/i })).toBeDisabled();
+      expect(
+        screen.getByRole("button", { name: /Joining/i })
+      ).toBeDisabled();
 
       resolveRpc!({ data: "household-uuid", error: null });
 
       await waitFor(() => {
         expect(mockPush).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe("Sign Out", () => {
+    it("signs out and redirects to login", async () => {
+      render(<SetupPage />);
+
+      fireEvent.click(screen.getByText("Log out of account"));
+
+      await waitFor(() => {
+        expect(mockSignOut).toHaveBeenCalled();
+        expect(mockPush).toHaveBeenCalledWith("/login");
       });
     });
   });
