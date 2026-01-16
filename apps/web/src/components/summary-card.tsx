@@ -45,7 +45,7 @@ export function SummaryCard({ summary, payers, monthName }: SummaryCardProps) {
               <span className="material-symbols-outlined text-[14px]">
                 trending_up
               </span>
-              +12%
+              -
             </span>
             <span className="text-xs text-charcoal-text/60 font-medium">
               vs last month
@@ -71,27 +71,29 @@ export function SummaryCard({ summary, payers, monthName }: SummaryCardProps) {
                     : "bg-pastel-blue";
 
             return (
-              <div key={payer.id} className="flex flex-col min-w-[90px]">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <div
-                    className={`w-1.5 h-1.5 rounded-full ${colorClass} ring-1 ring-charcoal-text/10`}
-                  />
-                  <p className="text-[10px] font-bold text-charcoal-text/60 uppercase tracking-wide">
-                    {payer.display_name} Spent
+              <div key={payer.id} className="flex items-center gap-6">
+                {index > 0 && (
+                  <div className="w-px h-10 bg-charcoal-text/10" />
+                )}
+                <div className="flex flex-col min-w-[90px]">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <div
+                      className={`w-1.5 h-1.5 rounded-full ${colorClass} ring-1 ring-charcoal-text/10`}
+                    />
+                    <p className="text-[10px] font-bold text-charcoal-text/60 uppercase tracking-wide">
+                      {payer.display_name} Spent
+                    </p>
+                  </div>
+                  <p className="text-xl font-bold text-charcoal-text tracking-tight">
+                    {payerDollars.toLocaleString()}
+                    <span className="text-sm text-charcoal-text/50">
+                      .{String(payerCents).padStart(2, "0")}
+                    </span>
                   </p>
                 </div>
-                <p className="text-xl font-bold text-charcoal-text tracking-tight">
-                  {payerDollars.toLocaleString()}
-                  <span className="text-sm text-charcoal-text/50">
-                    .{String(payerCents).padStart(2, "0")}
-                  </span>
-                </p>
               </div>
             );
           })}
-          {payers.length > 1 && (
-            <div className="w-px h-10 bg-charcoal-text/10 self-center -mx-2 first:hidden" />
-          )}
         </div>
       </div>
     </Card>
