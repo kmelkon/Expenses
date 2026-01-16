@@ -43,7 +43,7 @@ export function CategoryBreakdown() {
         {/* Donut chart */}
         <div className="relative w-48 h-48 shrink-0">
           <div
-            className="w-full h-full rounded-full border-8 border-white/30"
+            className="w-full h-full rounded-full"
             style={{
               background: `conic-gradient(${gradientStops})`,
               transform: "rotate(-90deg)",
