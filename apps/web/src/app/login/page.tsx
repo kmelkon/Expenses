@@ -40,9 +40,9 @@ export default function LoginPage() {
 
           {/* Icon circle */}
           <div className="relative z-10 transform transition-transform duration-700 hover:scale-105">
-            <div className="w-64 h-64 bg-white/60 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg shadow-pastel-peach/50 relative">
+            <div className="w-72 h-72 md:w-80 md:h-80 bg-white/60 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg shadow-pastel-peach/50 relative">
               <DecorativeDots />
-              <span className="material-symbols-outlined text-[100px] text-charcoal-text/80 drop-shadow-sm">
+              <span className="material-symbols-outlined text-[120px] md:text-[140px] text-charcoal-text/80 drop-shadow-sm">
                 cottage
               </span>
             </div>
