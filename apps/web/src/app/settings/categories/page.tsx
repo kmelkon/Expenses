@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { CategoryRow, ProfileRow } from "@expenses/shared";
-import { Input } from "@/components/ui";
+import { Input, Card, Button } from "@/components/ui";
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<CategoryRow[]>([]);
@@ -22,7 +22,9 @@ export default function CategoriesPage() {
   }, []);
 
   async function loadData() {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) {
       router.push("/login");
       return;
@@ -59,7 +61,7 @@ export default function CategoriesPage() {
     setSaving(true);
 
     const id = trimmed.toLowerCase().replace(/\s+/g, "_");
-    const maxOrder = Math.max(0, ...categories.map(c => c.display_order));
+    const maxOrder = Math.max(0, ...categories.map((c) => c.display_order));
 
     const { error } = await supabase.from("categories").insert({
       id,
@@ -79,7 +81,11 @@ export default function CategoriesPage() {
   }
 
   async function handleDeleteCategory(category: CategoryRow) {
-    if (!confirm(`Delete "${category.name}"? This won't delete existing expenses with this category.`)) {
+    if (
+      !confirm(
+        `Delete "${category.name}"? This won't delete existing expenses with this category.`
+      )
+    ) {
       return;
     }
 
@@ -98,72 +104,91 @@ export default function CategoriesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-cream-bg flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-charcoal-text" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
-          <Link href="/settings" className="text-gray-500 hover:text-gray-700">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+    <div className="min-h-screen bg-cream-bg text-charcoal-text">
+      <header className="bg-white/50 border-b border-white/50">
+        <div className="max-w-3xl mx-auto px-6 py-4 flex items-center gap-4">
+          <Link
+            href="/settings"
+            className="p-2 hover:bg-white rounded-xl transition-colors"
+          >
+            <span className="material-symbols-outlined text-charcoal-text">
+              arrow_back
+            </span>
           </Link>
-          <h1 className="text-xl font-bold text-gray-900">Categories</h1>
+          <h1 className="text-xl font-bold text-charcoal-text">Categories</h1>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-3xl mx-auto px-6 py-8 space-y-6">
         {/* Add Category Form */}
-        <form onSubmit={handleAddCategory} className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Add Category</h2>
-          <div className="flex gap-3">
+        <Card variant="peach">
+          <h2 className="text-lg font-bold text-charcoal-text mb-4">
+            Add Category
+          </h2>
+          <form onSubmit={handleAddCategory} className="flex gap-3">
             <Input
               type="text"
               value={newCategoryName}
-              onChange={e => setNewCategoryName(e.target.value)}
+              onChange={(e) => setNewCategoryName(e.target.value)}
               placeholder="Category name"
               className="flex-1"
             />
-            <button
+            <Button
               type="submit"
               disabled={saving || !newCategoryName.trim()}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+              variant="primary"
             >
               {saving ? "Adding..." : "Add"}
-            </button>
-          </div>
-        </form>
+            </Button>
+          </form>
+        </Card>
 
         {/* Categories List */}
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <h2 className="text-lg font-semibold text-gray-900 px-6 py-4 border-b border-gray-100">
+        <Card variant="lavender" className="p-0 overflow-hidden">
+          <h2 className="text-lg font-bold text-charcoal-text px-6 py-4 border-b border-white/30">
             All Categories ({categories.length})
           </h2>
           {categories.length === 0 ? (
-            <p className="px-6 py-8 text-center text-gray-500">
+            <p className="px-6 py-8 text-center text-light-grey-text">
               No categories yet. Add one above.
             </p>
           ) : (
-            <ul className="divide-y divide-gray-100">
-              {categories.map(category => (
-                <li key={category.id} className="flex items-center justify-between px-6 py-4">
-                  <span className="text-gray-900">{category.name}</span>
+            <ul className="divide-y divide-white/30">
+              {categories.map((category) => (
+                <li
+                  key={category.id}
+                  className="flex items-center justify-between px-6 py-4 hover:bg-white/40 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-pastel-mint/50 flex items-center justify-center">
+                      <span className="material-symbols-outlined text-charcoal-text text-sm">
+                        label
+                      </span>
+                    </div>
+                    <span className="text-charcoal-text font-medium">
+                      {category.name}
+                    </span>
+                  </div>
                   <button
                     onClick={() => handleDeleteCategory(category)}
-                    className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    className="p-2 text-light-grey-text hover:text-red-500 hover:bg-white rounded-lg transition-colors"
                   >
-                    Delete
+                    <span className="material-symbols-outlined text-lg">
+                      delete
+                    </span>
                   </button>
                 </li>
               ))}
             </ul>
           )}
-        </div>
+        </Card>
       </main>
     </div>
   );

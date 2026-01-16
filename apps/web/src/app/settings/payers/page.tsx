@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { PayerRow, ProfileRow } from "@expenses/shared";
-import { Input, Label } from "@/components/ui";
+import { Input, Label, Card, Button } from "@/components/ui";
 
 export default function PayersPage() {
   const [payers, setPayers] = useState<PayerRow[]>([]);
@@ -25,7 +25,9 @@ export default function PayersPage() {
   }, []);
 
   async function loadData() {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) {
       router.push("/login");
       return;
@@ -109,7 +111,11 @@ export default function PayersPage() {
   }
 
   async function handleDeletePayer(payer: PayerRow) {
-    if (!confirm(`Delete "${payer.display_name}"? Existing expenses will keep this payer's ID.`)) {
+    if (
+      !confirm(
+        `Delete "${payer.display_name}"? Existing expenses will keep this payer's ID.`
+      )
+    ) {
       return;
     }
 
@@ -128,30 +134,35 @@ export default function PayersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-cream-bg flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-charcoal-text" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
-          <Link href="/settings" className="text-gray-500 hover:text-gray-700">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+    <div className="min-h-screen bg-cream-bg text-charcoal-text">
+      <header className="bg-white/50 border-b border-white/50">
+        <div className="max-w-3xl mx-auto px-6 py-4 flex items-center gap-4">
+          <Link
+            href="/settings"
+            className="p-2 hover:bg-white rounded-xl transition-colors"
+          >
+            <span className="material-symbols-outlined text-charcoal-text">
+              arrow_back
+            </span>
           </Link>
-          <h1 className="text-xl font-bold text-gray-900">Payers</h1>
+          <h1 className="text-xl font-bold text-charcoal-text">Payers</h1>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-3xl mx-auto px-6 py-8 space-y-6">
         {/* Add Payer Form */}
-        <form onSubmit={handleAddPayer} className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Add Payer</h2>
-          <div className="space-y-4">
+        <Card variant="blue">
+          <h2 className="text-lg font-bold text-charcoal-text mb-4">
+            Add Payer
+          </h2>
+          <form onSubmit={handleAddPayer} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="payerId">ID</Label>
@@ -159,11 +170,13 @@ export default function PayersPage() {
                   id="payerId"
                   type="text"
                   value={newPayerId}
-                  onChange={e => setNewPayerId(e.target.value)}
+                  onChange={(e) => setNewPayerId(e.target.value)}
                   placeholder="e.g., john"
                   autoCapitalize="none"
                 />
-                <p className="text-xs text-gray-500 mt-1">Lowercase letters and underscores only</p>
+                <p className="text-xs text-light-grey-text mt-1">
+                  Lowercase letters and underscores only
+                </p>
               </div>
               <div>
                 <Label htmlFor="payerName">Display name</Label>
@@ -171,82 +184,106 @@ export default function PayersPage() {
                   id="payerName"
                   type="text"
                   value={newPayerName}
-                  onChange={e => setNewPayerName(e.target.value)}
+                  onChange={(e) => setNewPayerName(e.target.value)}
                   placeholder="e.g., John"
                 />
               </div>
             </div>
-            <button
+            <Button
               type="submit"
               disabled={saving || !newPayerId.trim() || !newPayerName.trim()}
-              className="w-full py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+              variant="primary"
+              className="w-full"
             >
               {saving ? "Adding..." : "Add Payer"}
-            </button>
-          </div>
-        </form>
+            </Button>
+          </form>
+        </Card>
 
         {/* Payers List */}
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <h2 className="text-lg font-semibold text-gray-900 px-6 py-4 border-b border-gray-100">
+        <Card variant="lavender" className="p-0 overflow-hidden">
+          <h2 className="text-lg font-bold text-charcoal-text px-6 py-4 border-b border-white/30">
             All Payers ({payers.length})
           </h2>
           {payers.length === 0 ? (
-            <p className="px-6 py-8 text-center text-gray-500">
+            <p className="px-6 py-8 text-center text-light-grey-text">
               No payers yet. Add one above.
             </p>
           ) : (
-            <ul className="divide-y divide-gray-100">
-              {payers.map(payer => (
-                <li key={payer.id} className="px-6 py-4">
+            <ul className="divide-y divide-white/30">
+              {payers.map((payer) => (
+                <li
+                  key={payer.id}
+                  className="px-6 py-4 hover:bg-white/40 transition-colors"
+                >
                   {editingPayer?.id === payer.id ? (
-                    <form onSubmit={handleUpdatePayer} className="flex items-center gap-3">
+                    <form
+                      onSubmit={handleUpdatePayer}
+                      className="flex items-center gap-3"
+                    >
                       <Input
                         type="text"
                         value={editingName}
-                        onChange={e => setEditingName(e.target.value)}
+                        onChange={(e) => setEditingName(e.target.value)}
                         className="flex-1"
                         autoFocus
                       />
-                      <button
+                      <Button
                         type="submit"
                         disabled={saving}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                        variant="primary"
+                        size="sm"
                       >
                         Save
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
                         onClick={() => {
                           setEditingPayer(null);
                           setEditingName("");
                         }}
-                        className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg text-sm"
+                        variant="ghost"
+                        size="sm"
                       >
                         Cancel
-                      </button>
+                      </Button>
                     </form>
                   ) : (
                     <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-gray-900 font-medium">{payer.display_name}</span>
-                        <span className="text-gray-500 text-sm ml-2">({payer.id})</span>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-pastel-peach/50 flex items-center justify-center">
+                          <span className="material-symbols-outlined text-charcoal-text">
+                            person
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-charcoal-text font-semibold">
+                            {payer.display_name}
+                          </span>
+                          <span className="text-light-grey-text text-sm ml-2">
+                            ({payer.id})
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-1">
                         <button
                           onClick={() => {
                             setEditingPayer(payer);
                             setEditingName(payer.display_name);
                           }}
-                          className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-2 text-light-grey-text hover:text-charcoal-text hover:bg-white rounded-lg transition-colors"
                         >
-                          Edit
+                          <span className="material-symbols-outlined text-lg">
+                            edit
+                          </span>
                         </button>
                         <button
                           onClick={() => handleDeletePayer(payer)}
-                          className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-light-grey-text hover:text-red-500 hover:bg-white rounded-lg transition-colors"
                         >
-                          Delete
+                          <span className="material-symbols-outlined text-lg">
+                            delete
+                          </span>
                         </button>
                       </div>
                     </div>
@@ -255,7 +292,7 @@ export default function PayersPage() {
               ))}
             </ul>
           )}
-        </div>
+        </Card>
       </main>
     </div>
   );

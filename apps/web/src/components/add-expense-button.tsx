@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { CategoryRow, PayerRow } from "@expenses/shared";
 import { parseAmountInput, getTodayYYYYMMDD } from "@expenses/shared";
@@ -11,10 +11,26 @@ interface AddExpenseButtonProps {
   payers: PayerRow[];
   householdId: string;
   onAdded: () => void;
+  forceOpen?: boolean;
+  onClose?: () => void;
+  variant?: "fab" | "inline";
 }
 
-export function AddExpenseButton({ categories, payers, householdId, onAdded }: AddExpenseButtonProps) {
+export function AddExpenseButton({ categories, payers, householdId, onAdded, forceOpen, onClose, variant = "fab" }: AddExpenseButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
+
+  // Sync with forceOpen prop
+  useEffect(() => {
+    if (forceOpen !== undefined) {
+      setIsOpen(forceOpen);
+    }
+  }, [forceOpen]);
+
+  const handleClose = () => {
+    setIsOpen(false);
+    setError(null);
+    onClose?.();
+  };
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState(categories[0]?.name || "");
   const [paidBy, setPaidBy] = useState(payers[0]?.id || "");
@@ -62,6 +78,7 @@ export function AddExpenseButton({ categories, payers, householdId, onAdded }: A
       setError(null);
       setIsOpen(false);
       setLoading(false);
+      onClose?.();
       onAdded();
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred");
@@ -71,33 +88,41 @@ export function AddExpenseButton({ categories, payers, householdId, onAdded }: A
 
   return (
     <>
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
-        aria-label="Add expense"
-      >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-        </svg>
-      </button>
+      {variant === "fab" ? (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="fixed bottom-6 right-6 w-14 h-14 bg-charcoal-text text-cream-bg rounded-full shadow-lg shadow-charcoal-text/20 hover:bg-charcoal-text/80 transition-colors flex items-center justify-center"
+          aria-label="Add expense"
+        >
+          <span className="material-symbols-outlined text-2xl">add</span>
+        </button>
+      ) : (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="group flex items-center gap-2 bg-charcoal-text text-cream-bg px-5 py-2.5 rounded-full hover:bg-charcoal-text/80 transition-all shadow-lg shadow-charcoal-text/20"
+        >
+          <span className="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-transform">
+            add
+          </span>
+          <span className="font-semibold text-sm">Add New</span>
+        </button>
+      )}
 
       {isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50">
-          <div className="bg-white w-full sm:max-w-md sm:rounded-lg rounded-t-xl p-6">
+        <div className="fixed inset-0 bg-charcoal-text/50 flex items-end sm:items-center justify-center z-50">
+          <div className="bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Add Expense</h2>
+              <h2 className="text-lg font-bold text-charcoal-text">Add Expense</h2>
               <button
-                onClick={() => { setIsOpen(false); setError(null); }}
-                className="p-2 hover:bg-gray-100 rounded-lg"
+                onClick={handleClose}
+                className="p-2 hover:bg-cream-bg rounded-xl transition-colors"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <span className="material-symbols-outlined text-charcoal-text">close</span>
               </button>
             </div>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              <div className="mb-4 p-3 bg-pastel-peach/50 border border-pastel-peach rounded-xl text-charcoal-text text-sm">
                 {error}
               </div>
             )}
@@ -137,10 +162,10 @@ export function AddExpenseButton({ categories, payers, householdId, onAdded }: A
                       key={payer.id}
                       type="button"
                       onClick={() => setPaidBy(payer.id)}
-                      className={`flex-1 py-2 px-4 rounded-lg border transition-colors ${
+                      className={`flex-1 py-2 px-4 rounded-xl border transition-colors ${
                         paidBy === payer.id
-                          ? "bg-blue-600 text-white border-blue-600"
-                          : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                          ? "bg-charcoal-text text-cream-bg border-charcoal-text"
+                          : "bg-white text-charcoal-text border-charcoal-text/10 hover:bg-cream-bg"
                       }`}
                     >
                       {payer.display_name}
@@ -173,7 +198,7 @@ export function AddExpenseButton({ categories, payers, householdId, onAdded }: A
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+                className="w-full py-3 bg-charcoal-text text-cream-bg rounded-xl font-semibold hover:bg-charcoal-text/80 transition-colors disabled:opacity-50"
               >
                 {loading ? "Adding..." : "Add Expense"}
               </button>

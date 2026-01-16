@@ -284,6 +284,90 @@ src/components/totals-table.tsx
 
 ---
 
+## Phase 6: Expenses Tab Redesign
+
+Based on new HTML design with search, filters, and date grouping.
+
+### New Components
+
+- [ ] Create `transaction-search.tsx` - search bar + filter buttons
+  - Search input: `pl-12 pr-4 py-3 bg-white rounded-2xl shadow-sm`
+  - Material search icon positioned left
+  - Placeholder: "Search merchant, category or amount..."
+  - Filter buttons: Category, User, Date (icons: category, person, date_range)
+  - Button style: `bg-white hover:bg-white/80 rounded-xl shadow-sm`
+
+### Expense List Grouping
+
+- [ ] Update `expense-list.tsx` with date grouping
+  - Group transactions by: Today, Yesterday, specific dates (Oct 22, etc.)
+  - Date header: `text-xs font-bold text-light-grey-text uppercase tracking-wider`
+  - Horizontal line after header text
+  - Use `date-fns` for date comparison (isToday, isYesterday, format)
+
+### Transaction Row Styling (from HTML)
+
+- [ ] Update transaction row layout
+  - Container: `bg-white/60 hover:bg-white rounded-2xl shadow-sm hover:shadow-md`
+  - Border on hover: `border border-transparent hover:border-pastel-*/30`
+  - Merchant icon: `w-12 h-12 rounded-full bg-pastel-*/50` with Material icon or initials
+  - Category pill: `text-xs font-semibold bg-pastel-*/20 px-2 py-0.5 rounded-md`
+  - Payer badge: `text-[10px] uppercase font-bold px-2 py-0.5 rounded-md tracking-wide`
+
+### Page Header Update
+
+- [ ] Update `expense-list-page.tsx` header section
+  - Title: "Transactions" (not "Expenses")
+  - Subtitle: "History of expenses for {Month}."
+  - "Add New" button inline (charcoal, rounded-full) instead of FAB
+  - Remove FAB from this page
+
+### Search/Filter State
+
+- [ ] Add search state to `expense-list-page.tsx`
+  - `searchQuery` state for text search
+  - Filter expenses client-side (merchant name, category, amount)
+  - Pass filtered expenses to expense-list
+
+### Delete Functionality (PRESERVE)
+
+- [ ] Keep existing delete implementation:
+  - `handleDelete(id)` with confirm dialog
+  - Soft-delete: `update({ deleted: true, updated_at })`
+  - Call `onRefresh()` after delete
+  - Delete button: hover-visible trash icon
+
+### Key Classes from HTML
+
+```
+Search input:   w-full pl-12 pr-4 py-3 bg-white rounded-2xl border-none shadow-sm
+Filter btn:     px-4 py-3 bg-white hover:bg-white/80 rounded-xl shadow-sm
+Date header:    text-xs font-bold text-light-grey-text uppercase tracking-wider
+Transaction:    p-4 bg-white/60 hover:bg-white rounded-2xl shadow-sm hover:shadow-md
+Merchant icon:  w-12 h-12 rounded-full bg-pastel-mint/50
+Category pill:  text-xs font-semibold bg-pastel-mint/20 px-2 py-0.5 rounded-md
+Payer badge:    text-[10px] uppercase font-bold bg-pastel-lavender/50 px-2 py-0.5 rounded-md
+```
+
+### Icon-Category Mapping
+
+Map categories to Material icons and pastel colors:
+- Groceries: shopping_cart, mint
+- Dining: local_cafe, blue
+- Utilities: bolt, warning
+- Household: shopping_bag, peach
+- Transport: local_gas_station, lavender
+- Entertainment: movie, blue
+- Default: receipt_long, mint
+
+**Files:**
+
+- `src/components/transaction-search.tsx` (new)
+- `src/components/expense-list.tsx` (modify)
+- `src/components/expense-list-page.tsx` (modify)
+
+---
+
 ## Verification
 
 Per phase:
