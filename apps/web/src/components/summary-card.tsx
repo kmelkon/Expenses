@@ -34,7 +34,7 @@ export function SummaryCard({ summary, payers, monthName }: SummaryCardProps) {
             </span>
           </div>
           <h2 className="text-5xl font-black text-charcoal-text tracking-tight">
-            ${dollars.toLocaleString()}
+            {dollars.toLocaleString()}
             <span className="text-2xl text-charcoal-text/50 font-medium">
               .{String(cents).padStart(2, "0")}
             </span>
@@ -77,11 +77,11 @@ export function SummaryCard({ summary, payers, monthName }: SummaryCardProps) {
                     className={`w-1.5 h-1.5 rounded-full ${colorClass} ring-1 ring-charcoal-text/10`}
                   />
                   <p className="text-[10px] font-bold text-charcoal-text/60 uppercase tracking-wide">
-                    {payer.name} Spent
+                    {payer.display_name} Spent
                   </p>
                 </div>
                 <p className="text-xl font-bold text-charcoal-text tracking-tight">
-                  ${payerDollars.toLocaleString()}
+                  {payerDollars.toLocaleString()}
                   <span className="text-sm text-charcoal-text/50">
                     .{String(payerCents).padStart(2, "0")}
                   </span>

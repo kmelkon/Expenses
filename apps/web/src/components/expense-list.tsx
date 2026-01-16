@@ -186,7 +186,7 @@ export function ExpenseList({ expenses, payers, onRefresh }: ExpenseListProps) {
                   <div className="flex items-center gap-4">
                     <div className="flex flex-col items-end gap-1">
                       <p className="text-charcoal-text text-base font-bold">
-                        -${amountDollars}.{String(amountCents).padStart(2, "0")}
+                        {amountDollars}.{String(amountCents).padStart(2, "0")}
                       </p>
                       <span
                         className={`text-[10px] uppercase font-bold text-charcoal-text/50 ${payerColor} px-2 py-0.5 rounded-md tracking-wide`}

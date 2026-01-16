@@ -97,9 +97,9 @@ export function LatestTransactions({
                 </div>
                 <div className="flex flex-col items-end">
                   <p className="text-charcoal-text text-base font-bold">
-                    -${amountDollars}.{String(amountCents).padStart(2, "0")}
+                    {amountDollars}.{String(amountCents).padStart(2, "0")}
                   </p>
-                  <Badge variant={payerColor}>{payer?.name || "Unknown"}</Badge>
+                  <Badge variant={payerColor}>{payer?.display_name || "Unknown"}</Badge>
                 </div>
               </div>
             );
