@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "playwriter": {
+      "command": "npx",
+      "args": ["--registry", "https://registry.npmjs.org/", "playwriter@latest"]
+    }
+  }
+}

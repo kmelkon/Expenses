@@ -42,6 +42,7 @@ yarn-error.*
 out/
 
 app-example
+tmp/*
 
 # generated native folders
 /ios

@@ -1,20 +1,58 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { CategoryRow, PayerRow } from "@expenses/shared";
 import { parseAmountInput, getTodayYYYYMMDD } from "@expenses/shared";
-import { Input, Select, Label } from "@/components/ui";
+
+// Color mappings for categories
+const CATEGORY_COLORS: Record<string, { bg: string }> = {
+  mint: { bg: "bg-pastel-mint" },
+  blue: { bg: "bg-pastel-blue" },
+  peach: { bg: "bg-pastel-peach" },
+  lavender: { bg: "bg-pastel-lavender" },
+  yellow: { bg: "bg-accent-warning/50" },
+  grey: { bg: "bg-gray-200" },
+};
+
+function getCategoryColor(colorId: string | undefined) {
+  return CATEGORY_COLORS[colorId || "mint"] || CATEGORY_COLORS.mint;
+}
 
 interface AddExpenseButtonProps {
   categories: CategoryRow[];
   payers: PayerRow[];
   householdId: string;
   onAdded: () => void;
+  forceOpen?: boolean;
+  onClose?: () => void;
+  variant?: "fab" | "inline";
 }
 
-export function AddExpenseButton({ categories, payers, householdId, onAdded }: AddExpenseButtonProps) {
+export function AddExpenseButton({
+  categories,
+  payers,
+  householdId,
+  onAdded,
+  forceOpen,
+  onClose,
+  variant = "fab",
+}: AddExpenseButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
+
+  // Sync with forceOpen prop
+  useEffect(() => {
+    if (forceOpen !== undefined) {
+      setIsOpen(forceOpen);
+    }
+  }, [forceOpen]);
+
+  const handleClose = () => {
+    setIsOpen(false);
+    setError(null);
+    onClose?.();
+  };
+
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState(categories[0]?.name || "");
   const [paidBy, setPaidBy] = useState(payers[0]?.id || "");
@@ -30,7 +68,7 @@ export function AddExpenseButton({ categories, payers, householdId, onAdded }: A
 
     const amountCents = parseAmountInput(amount);
     if (!amountCents) {
-      alert("Please enter a valid amount");
+      setError("Please enter a valid amount");
       return;
     }
 
@@ -62,121 +100,212 @@ export function AddExpenseButton({ categories, payers, householdId, onAdded }: A
       setError(null);
       setIsOpen(false);
       setLoading(false);
+      onClose?.();
       onAdded();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unexpected error occurred");
+      setError(
+        err instanceof Error ? err.message : "An unexpected error occurred"
+      );
       setLoading(false);
     }
   };
 
   return (
     <>
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
-        aria-label="Add expense"
-      >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-        </svg>
-      </button>
+      {variant === "fab" ? (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="fixed bottom-6 right-6 w-14 h-14 bg-charcoal-text text-cream-bg rounded-full shadow-lg shadow-charcoal-text/20 hover:bg-charcoal-text/80 transition-colors flex items-center justify-center"
+          aria-label="Add expense"
+        >
+          <span className="material-symbols-outlined text-2xl">add</span>
+        </button>
+      ) : (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="group flex items-center gap-2 bg-charcoal-text text-cream-bg px-5 py-2.5 rounded-full hover:bg-charcoal-text/80 transition-all shadow-lg shadow-charcoal-text/20"
+        >
+          <span className="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-transform">
+            add
+          </span>
+          <span className="font-semibold text-sm">Add New</span>
+        </button>
+      )}
 
       {isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50">
-          <div className="bg-white w-full sm:max-w-md sm:rounded-lg rounded-t-xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Add Expense</h2>
-              <button
-                onClick={() => { setIsOpen(false); setError(null); }}
-                className="p-2 hover:bg-gray-100 rounded-lg"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
+        <div className="fixed inset-0 bg-charcoal-text/50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="relative bg-white w-full sm:max-w-xl sm:rounded-[2rem] rounded-t-[2rem] overflow-hidden shadow-2xl max-h-[95vh] overflow-y-auto">
+            {/* Close button */}
+            <button
+              onClick={handleClose}
+              className="absolute top-4 right-4 z-10 p-2 hover:bg-white/50 rounded-full transition-colors sm:hidden"
+            >
+              <span className="material-symbols-outlined text-charcoal-text/60">
+                close
+              </span>
+            </button>
 
-            {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="amount">Amount (SEK)</Label>
-                <Input
-                  id="amount"
-                  type="text"
-                  inputMode="decimal"
-                  value={amount}
-                  onChange={e => setAmount(e.target.value)}
-                  placeholder="0.00"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="category">Category</Label>
-                <Select
-                  id="category"
-                  value={category}
-                  onChange={e => setCategory(e.target.value)}
+            <form onSubmit={handleSubmit}>
+              {/* Amount Header Section */}
+              <div className="bg-pastel-mint/30 p-8 sm:p-10 flex flex-col items-center justify-center border-b border-pastel-mint/20">
+                <label
+                  className="text-xs font-bold uppercase tracking-widest text-charcoal-text/40 mb-3"
+                  htmlFor="amount"
                 >
-                  {categories.map(cat => (
-                    <option key={cat.id} value={cat.name}>{cat.name}</option>
-                  ))}
-                </Select>
-              </div>
-
-              <div>
-                <Label>Paid by</Label>
-                <div className="flex gap-2">
-                  {payers.map(payer => (
-                    <button
-                      key={payer.id}
-                      type="button"
-                      onClick={() => setPaidBy(payer.id)}
-                      className={`flex-1 py-2 px-4 rounded-lg border transition-colors ${
-                        paidBy === payer.id
-                          ? "bg-blue-600 text-white border-blue-600"
-                          : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                      }`}
-                    >
-                      {payer.display_name}
-                    </button>
-                  ))}
+                  Amount
+                </label>
+                <div className="relative flex items-center justify-center w-full">
+                  <input
+                    autoFocus
+                    className="w-full bg-transparent border-none p-0 text-5xl sm:text-6xl font-black text-charcoal-text text-center focus:ring-0 placeholder:text-charcoal-text/10 leading-none"
+                    id="amount"
+                    placeholder="0.00"
+                    type="text"
+                    inputMode="decimal"
+                    value={amount}
+                    onChange={(e) => {
+                      // Only allow digits and one decimal point
+                      const value = e.target.value;
+                      if (value === "" || /^\d*\.?\d*$/.test(value)) {
+                        setAmount(value);
+                      }
+                    }}
+                  />
                 </div>
               </div>
 
-              <div>
-                <Label htmlFor="date">Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={date}
-                  onChange={e => setDate(e.target.value)}
-                />
+              {/* Form Fields */}
+              <div className="flex flex-col divide-y divide-gray-100">
+                {/* Merchant/Note Input */}
+                <div className="w-full p-5 sm:p-6 hover:bg-gray-50/50 transition-colors">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-light-grey-text mb-2">
+                    Merchant
+                  </label>
+                  <input
+                    className="w-full bg-transparent border-none p-0 text-lg font-bold text-charcoal-text placeholder:text-charcoal-text/20 focus:ring-0"
+                    placeholder="e.g. Whole Foods"
+                    type="text"
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                  />
+                </div>
+
+                {/* Category Picker */}
+                <div className="w-full p-5 sm:p-6 bg-white">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-light-grey-text mb-4">
+                    Category
+                  </label>
+                  <div className="grid grid-cols-5 gap-2 sm:gap-3">
+                    {categories.map((cat) => {
+                      const colorClass = getCategoryColor(cat.color);
+                      const isSelected = category === cat.name;
+                      return (
+                        <label
+                          key={cat.id}
+                          className="cursor-pointer group flex flex-col items-center gap-2"
+                        >
+                          <input
+                            className="peer sr-only"
+                            name="category"
+                            type="radio"
+                            value={cat.name}
+                            checked={isSelected}
+                            onChange={(e) => setCategory(e.target.value)}
+                          />
+                          <div
+                            className={`h-11 w-11 sm:h-12 sm:w-12 rounded-full ${colorClass.bg} flex items-center justify-center text-charcoal-text/60 peer-checked:text-charcoal-text peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-charcoal-text/20 transition-all group-hover:scale-110`}
+                          >
+                            <span className="material-symbols-outlined text-xl sm:text-[24px]">
+                              {cat.icon || "label"}
+                            </span>
+                          </div>
+                          <span className="text-[10px] font-bold text-light-grey-text peer-checked:text-charcoal-text transition-colors text-center leading-tight truncate w-full">
+                            {cat.name}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Date and Paid By Row */}
+                <div className="p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 sm:gap-6">
+                  {/* Date Picker */}
+                  <div className="w-full sm:w-auto">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-light-grey-text mb-2">
+                      Date
+                    </label>
+                    <input
+                      className="bg-transparent border-none p-0 text-lg font-bold text-charcoal-text focus:ring-0 w-full font-sans text-left"
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Paid By Toggle */}
+                  <div className="w-full sm:w-auto flex flex-col items-start sm:items-end gap-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-light-grey-text">
+                      Paid by
+                    </span>
+                    <div className="flex bg-cream-bg p-1.5 rounded-xl gap-1">
+                      {payers.map((payer, index) => (
+                        <label key={payer.id} className="cursor-pointer">
+                          <input
+                            className="peer sr-only"
+                            name="paid_by"
+                            type="radio"
+                            value={payer.id}
+                            checked={paidBy === payer.id}
+                            onChange={(e) => setPaidBy(e.target.value)}
+                          />
+                          <div
+                            className={`px-5 sm:px-6 py-2 rounded-lg text-sm font-bold text-charcoal-text/50 peer-checked:text-charcoal-text peer-checked:shadow-sm transition-all flex items-center gap-2 ${
+                              index === 0
+                                ? "peer-checked:bg-pastel-blue"
+                                : "peer-checked:bg-accent-warning"
+                            }`}
+                          >
+                            {payer.display_name}
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <Label htmlFor="note">Note (optional)</Label>
-                <Input
-                  id="note"
-                  type="text"
-                  value={note}
-                  onChange={e => setNote(e.target.value)}
-                  placeholder="What was this for?"
-                />
-              </div>
+              {/* Error Message */}
+              {error && (
+                <div className="mx-5 sm:mx-6 mb-4 p-3 bg-pastel-peach/50 border border-pastel-peach rounded-xl text-charcoal-text text-sm">
+                  {error}
+                </div>
+              )}
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
-              >
-                {loading ? "Adding..." : "Add Expense"}
-              </button>
+              {/* Submit Button */}
+              <div className="p-5 sm:p-6 pt-0">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-charcoal-text text-cream-bg py-4 rounded-full font-bold text-lg hover:bg-charcoal-text/90 transition-all shadow-xl shadow-charcoal-text/10 flex items-center justify-center gap-2 group disabled:opacity-50"
+                >
+                  <span className="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-transform">
+                    add
+                  </span>
+                  {loading ? "Adding..." : "Log Expense"}
+                </button>
+
+                {/* Cancel Link */}
+                <div className="text-center mt-4">
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="text-sm font-bold text-charcoal-text/40 hover:text-charcoal-text transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
             </form>
           </div>
         </div>

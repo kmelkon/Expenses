@@ -53,6 +53,8 @@ export interface CategoryRow {
   household_id?: string;
   name: string;
   display_order: number;
+  icon?: string;
+  color?: string;
   created_at: string;
 }
 

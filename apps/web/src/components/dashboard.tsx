@@ -5,11 +5,14 @@ import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import type { ProfileRow, ExpenseRow, MonthSummary, CategoryRow, PayerRow } from "@expenses/shared";
 import { formatAmount, getCurrentMonth, formatMonthDisplay, getPreviousMonth, getNextMonth } from "@expenses/shared";
-import { ExpenseList } from "./expense-list";
-import { MonthNavigator } from "./month-navigator";
-import { TotalsTable } from "./totals-table";
+import { format } from "date-fns";
+import { AppHeader } from "./app-header";
+import { WelcomeSection } from "./welcome-section";
+import { SummaryCard } from "./summary-card";
+import { SpendingFlowChart } from "./spending-flow-chart";
+import { CategoryBreakdown } from "./category-breakdown";
+import { LatestTransactions } from "./latest-transactions";
 import { AddExpenseButton } from "./add-expense-button";
-import { Header } from "./header";
 
 interface DashboardProps {
   user: User;
@@ -98,30 +101,41 @@ export function Dashboard({ user, profile }: DashboardProps) {
   const handlePreviousMonth = () => setCurrentMonth(getPreviousMonth(currentMonth));
   const handleNextMonth = () => setCurrentMonth(getNextMonth(currentMonth));
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Header user={user} profile={profile} />
+  // Get month name for display
+  const [year, month] = currentMonth.split("-").map(Number);
+  const monthName = format(new Date(year, month - 1), "MMMM");
 
-      <main className="max-w-4xl mx-auto px-4 py-6">
-        <MonthNavigator
-          currentMonth={currentMonth}
-          onPrevious={handlePreviousMonth}
-          onNext={handleNextMonth}
+  // State for add expense modal
+  const [showAddExpense, setShowAddExpense] = useState(false);
+
+  return (
+    <div className="min-h-screen bg-cream-bg text-charcoal-text selection:bg-pastel-peach">
+      <AppHeader user={user} profile={profile} activeTab="dashboard" />
+
+      <main className="w-full max-w-3xl mx-auto px-6 pb-20 mt-8">
+        <WelcomeSection
+          userName={profile.display_name?.split(" ")[0] || "there"}
+          monthName={monthName}
+          onAddExpense={() => setShowAddExpense(true)}
         />
 
         {loading ? (
           <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-charcoal-text"></div>
           </div>
         ) : (
-          <>
-            {summary && <TotalsTable summary={summary} payers={payers} />}
-            <ExpenseList
-              expenses={expenses}
-              payers={payers}
-              onRefresh={loadData}
-            />
-          </>
+          <div className="flex flex-col gap-8">
+            {summary && (
+              <SummaryCard
+                summary={summary}
+                payers={payers}
+                monthName={monthName}
+              />
+            )}
+            <SpendingFlowChart />
+            <CategoryBreakdown />
+            <LatestTransactions expenses={expenses} payers={payers} />
+          </div>
         )}
 
         <AddExpenseButton
@@ -129,8 +143,16 @@ export function Dashboard({ user, profile }: DashboardProps) {
           payers={payers}
           householdId={profile.household_id!}
           onAdded={loadData}
+          forceOpen={showAddExpense}
+          onClose={() => setShowAddExpense(false)}
         />
       </main>
+
+      <footer className="text-center pb-8 opacity-50">
+        <p className="text-xs font-medium text-charcoal-text">
+          {new Date().getFullYear()} OurNest
+        </p>
+      </footer>
     </div>
   );
 }
