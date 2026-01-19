@@ -1,26 +1,84 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light only;
+
+  /* OurNest Color Palette */
+  --cream-bg: #FDFBF7;
+  --charcoal-text: #4A4543;
+  --light-grey-text: #948E8C;
+  --pastel-blue: #D6EAF8;
+  --pastel-mint: #DDF2D8;
+  --pastel-peach: #FAE5D3;
+  --pastel-lavender: #E8DAEF;
+  --accent-primary: #7FB3D5;
+  --accent-success: #8FC99C;
+  --accent-warning: #F7DC6F;
+  --border-color: rgba(74, 69, 67, 0.1);
+
+  /* Semantic aliases */
+  --background: var(--cream-bg);
+  --foreground: var(--charcoal-text);
 }
 
 @theme inline {
+  /* Colors */
+  --color-cream-bg: var(--cream-bg);
+  --color-charcoal-text: var(--charcoal-text);
+  --color-light-grey-text: var(--light-grey-text);
+  --color-pastel-blue: var(--pastel-blue);
+  --color-pastel-mint: var(--pastel-mint);
+  --color-pastel-peach: var(--pastel-peach);
+  --color-pastel-lavender: var(--pastel-lavender);
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-success: var(--accent-success);
+  --color-accent-warning: var(--accent-warning);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Typography */
+  --font-heading: var(--font-fraunces);
+  --font-body: var(--font-nunito-sans);
+  --font-sans: var(--font-nunito-sans);
+
+  /* Border Radius */
+  --radius-DEFAULT: 0.5rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+  --radius-3xl: 2.5rem;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans);
+  font-family: var(--font-body), sans-serif;
+}
+
+/* Material Symbols configuration */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-size: inherit;
+  width: 1em;
+  height: 1em;
+}
+
+.material-symbols-outlined.filled {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Large icon sizes */
+.icon-xl {
+  font-size: 80px !important;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+}
+
+.icon-lg {
+  font-size: 40px !important;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 40;
+}
+
+/* Heading typography */
+h1, h2, h3, .font-heading {
+  font-family: var(--font-heading), serif;
 }

@@ -40,3 +40,17 @@ export const parseAmountInput = (s: string): number | null => {
 export function centsToInputValue(cents: number): string {
   return (cents / 100).toFixed(2);
 }
+
+/**
+ * Format cents to SEK parts for split styling
+ * @param cents - Amount in cents (e.g., 12345 for 123.45 SEK)
+ * @returns Object with kronor and öre as formatted strings
+ */
+export function formatSEKParts(cents: number): { kronor: string; ore: string } {
+  const kronor = Math.floor(cents / 100);
+  const ore = cents % 100;
+  return {
+    kronor: kronor.toLocaleString("sv-SE"),
+    ore: String(ore).padStart(2, "0"),
+  };
+}
