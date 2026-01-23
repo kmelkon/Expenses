@@ -1,35 +1,50 @@
 import { Card } from "./ui";
+import { formatAmount } from "@expenses/shared";
+import type { CategoryBreakdownItem } from "@/lib/calculations/spending-calculations";
 
-interface CategoryItem {
-  name: string;
-  percentage: number;
-  color: string;
+// Map Tailwind bg classes to hex colors for SVG
+const colorMap: Record<string, string> = {
+  "bg-accent-primary": "#7FB3D5",
+  "bg-accent-success": "#8FC99C",
+  "bg-accent-warning": "#F7DC6F",
+  "bg-pastel-lavender": "#E8DAEF",
+  "bg-pastel-blue": "#D6EAF8",
+  "bg-pastel-mint": "#DDF2D8",
+  "bg-pastel-peach": "#FAE5D3",
+};
+
+interface CategoryBreakdownProps {
+  breakdown: CategoryBreakdownItem[];
 }
 
-// Placeholder data - will be replaced with real data later
-const placeholderCategories: CategoryItem[] = [
-  { name: "Groceries", percentage: 40, color: "bg-accent-primary" },
-  { name: "Rent", percentage: 25, color: "bg-accent-success" },
-  { name: "Dining", percentage: 20, color: "bg-accent-warning" },
-  { name: "Utilities", percentage: 15, color: "bg-pastel-lavender" },
-];
+export function CategoryBreakdown({ breakdown }: CategoryBreakdownProps) {
+  // Handle empty state
+  if (breakdown.length === 0) {
+    return (
+      <Card variant="peach" hover>
+        <h3 className="text-xl font-bold text-charcoal-text mb-8">
+          Where it went
+        </h3>
+        <div className="flex items-center justify-center py-12 text-charcoal-text/50">
+          <span className="material-symbols-outlined text-4xl mr-3">
+            category
+          </span>
+          <span className="text-lg font-medium">No expenses this month</span>
+        </div>
+      </Card>
+    );
+  }
 
-export function CategoryBreakdown() {
-  const topCategory = placeholderCategories[0];
+  const topCategory = breakdown[0];
 
   // Build conic gradient from percentages
   let accumulated = 0;
-  const gradientStops = placeholderCategories
+  const gradientStops = breakdown
     .map((cat) => {
       const start = accumulated;
       accumulated += cat.percentage;
-      const colorMap: Record<string, string> = {
-        "bg-accent-primary": "#7FB3D5",
-        "bg-accent-success": "#8FC99C",
-        "bg-accent-warning": "#F7DC6F",
-        "bg-pastel-lavender": "#E8DAEF",
-      };
-      return `${colorMap[cat.color]} ${start}% ${accumulated}%`;
+      const hexColor = colorMap[cat.color] || cat.color;
+      return `${hexColor} ${start}% ${accumulated}%`;
     })
     .join(", ");
 
@@ -61,26 +76,37 @@ export function CategoryBreakdown() {
 
         {/* Legend */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 w-full">
-          {placeholderCategories.map((cat) => (
+          {breakdown.map((cat) => (
             <div
               key={cat.name}
               className="flex items-center gap-3 p-3 bg-white/40 rounded-xl"
             >
-              <div className={`w-3 h-3 rounded-full ${cat.color}`} />
-              <div className="flex flex-col w-full">
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-charcoal-text font-bold">
+              <div
+                className="w-3 h-3 rounded-full shrink-0"
+                style={{ backgroundColor: colorMap[cat.color] || cat.color }}
+              />
+              <div className="flex flex-col w-full min-w-0">
+                <div className="flex justify-between text-sm mb-1 gap-2">
+                  <span className="text-charcoal-text font-bold truncate">
                     {cat.name}
                   </span>
-                  <span className="text-charcoal-text/60 font-semibold">
-                    {cat.percentage}%
+                  <span className="text-charcoal-text/80 font-semibold whitespace-nowrap">
+                    {formatAmount(cat.amount)} kr
                   </span>
                 </div>
-                <div className="w-full h-2 bg-white rounded-full overflow-hidden">
-                  <div
-                    className={`h-full ${cat.color}`}
-                    style={{ width: `${cat.percentage}%` }}
-                  />
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 h-2 bg-white rounded-full overflow-hidden">
+                    <div
+                      className="h-full"
+                      style={{
+                        width: `${cat.percentage}%`,
+                        backgroundColor: colorMap[cat.color] || cat.color,
+                      }}
+                    />
+                  </div>
+                  <span className="text-xs text-charcoal-text/50 font-semibold w-8 text-right">
+                    {cat.percentage}%
+                  </span>
                 </div>
               </div>
             </div>
