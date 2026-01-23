@@ -1,18 +1,51 @@
 import { Card } from "./ui";
 import type { MonthSummary, PayerRow } from "@expenses/shared";
 import { formatSEKParts } from "@expenses/shared";
+import type { MonthChange } from "@/lib/calculations/spending-calculations";
 
 interface SummaryCardProps {
   summary: MonthSummary;
   payers: PayerRow[];
   monthName: string;
+  trend?: MonthChange;
 }
 
 // Assign colors to payers based on index
 const payerColors = ["lavender", "warning", "mint", "blue"] as const;
 
-export function SummaryCard({ summary, payers, monthName }: SummaryCardProps) {
+export function SummaryCard({ summary, payers, monthName, trend }: SummaryCardProps) {
   const { kronor, ore } = formatSEKParts(summary.grandTotal);
+
+  // Determine trend display
+  const getTrendDisplay = () => {
+    if (!trend) {
+      return { icon: "remove", color: "text-charcoal-text/50", text: "-" };
+    }
+
+    switch (trend.direction) {
+      case "up":
+        return {
+          icon: "trending_up",
+          color: "text-red-500",
+          text: `+${trend.percentChange}%`,
+        };
+      case "down":
+        return {
+          icon: "trending_down",
+          color: "text-green-600",
+          text: `-${trend.percentChange}%`,
+        };
+      case "flat":
+      default:
+        return {
+          icon: "remove",
+          color: "text-charcoal-text/50",
+          text: "~0%",
+        };
+    }
+  };
+
+  const trendDisplay = getTrendDisplay();
 
   return (
     <Card variant="mint" hover className="relative">
@@ -38,13 +71,13 @@ export function SummaryCard({ summary, payers, monthName }: SummaryCardProps) {
               .{ore}
             </span>
           </h2>
-          {/* Trend indicator - placeholder */}
+          {/* Trend indicator */}
           <div className="mt-2 flex items-center gap-2">
-            <span className="bg-white/50 px-3 py-1 rounded-full text-xs font-bold text-charcoal-text flex items-center gap-1">
+            <span className={`bg-white/50 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${trendDisplay.color}`}>
               <span className="material-symbols-outlined text-[14px]">
-                trending_up
+                {trendDisplay.icon}
               </span>
-              -
+              {trendDisplay.text}
             </span>
             <span className="text-xs text-charcoal-text/60 font-medium">
               vs last month

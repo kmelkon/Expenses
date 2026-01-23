@@ -4,3 +4,4 @@ export { Label, type LabelProps } from "./label";
 export { Button, type ButtonProps } from "./button";
 export { Card, type CardProps } from "./card";
 export { Badge, type BadgeProps } from "./badge";
+export { Skeleton, ChartSkeleton, CardSkeleton, SummaryCardSkeleton } from "./skeleton";

@@ -13,6 +13,14 @@ import { SpendingFlowChart } from "./spending-flow-chart";
 import { CategoryBreakdown } from "./category-breakdown";
 import { LatestTransactions } from "./latest-transactions";
 import { AddExpenseButton } from "./add-expense-button";
+import { Card, SummaryCardSkeleton, ChartSkeleton, CardSkeleton } from "./ui";
+import { getExpensesWithPreviousMonth } from "@/lib/queries/expense-queries";
+import {
+  calculateCategoryBreakdown,
+  calculateMonthChange,
+  type MonthChange,
+  type CategoryBreakdownItem,
+} from "@/lib/calculations/spending-calculations";
 
 interface DashboardProps {
   user: User;
@@ -26,6 +34,8 @@ export function Dashboard({ user, profile }: DashboardProps) {
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [payers, setPayers] = useState<PayerRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [trend, setTrend] = useState<MonthChange | undefined>(undefined);
+  const [categoryBreakdown, setCategoryBreakdown] = useState<CategoryBreakdownItem[]>([]);
 
   const supabase = createClient();
 
@@ -35,22 +45,6 @@ export function Dashboard({ user, profile }: DashboardProps) {
 
   async function loadData() {
     setLoading(true);
-
-    const [year, month] = currentMonth.split("-").map(Number);
-    const startDate = `${currentMonth}-01`;
-    const nextMonth = month === 12 ? 1 : month + 1;
-    const nextYear = month === 12 ? year + 1 : year;
-    const endDate = `${nextYear}-${String(nextMonth).padStart(2, "0")}-01`;
-
-    // Fetch expenses for the month
-    const { data: expensesData } = await supabase
-      .from("expenses")
-      .select("*")
-      .eq("household_id", profile.household_id)
-      .eq("deleted", false)
-      .gte("date", startDate)
-      .lt("date", endDate)
-      .order("date", { ascending: false });
 
     // Fetch categories and payers
     const [{ data: categoriesData }, { data: payersData }] = await Promise.all([
@@ -65,35 +59,48 @@ export function Dashboard({ user, profile }: DashboardProps) {
         .eq("household_id", profile.household_id),
     ]);
 
-    setExpenses(expensesData || []);
     setCategories(categoriesData || []);
     setPayers(payersData || []);
 
+    // Fetch current and previous month expenses for trend calculation
+    const { current: currentExpenses, previous: previousExpenses } =
+      await getExpensesWithPreviousMonth(supabase, profile.household_id!, currentMonth);
+
+    // Reverse for display (latest first) but keep original for charts
+    setExpenses([...currentExpenses].reverse());
+
     // Calculate summary
-    if (expensesData) {
-      const totalsByPerson = payersData?.map(payer => ({
+    const totalsByPerson = payersData?.map(payer => ({
+      paid_by: payer.id,
+      total: currentExpenses
+        .filter(e => e.paid_by === payer.id)
+        .reduce((sum, e) => sum + e.amount_cents, 0)
+    })) || [];
+
+    const totalsByCategory = categoriesData?.flatMap(cat =>
+      payersData?.map(payer => ({
+        category: cat.name,
         paid_by: payer.id,
-        total: expensesData
-          .filter(e => e.paid_by === payer.id)
+        total: currentExpenses
+          .filter(e => e.category === cat.name && e.paid_by === payer.id)
           .reduce((sum, e) => sum + e.amount_cents, 0)
-      })) || [];
+      })) || []
+    ).filter(t => t.total > 0) || [];
 
-      const totalsByCategory = categoriesData?.flatMap(cat =>
-        payersData?.map(payer => ({
-          category: cat.name,
-          paid_by: payer.id,
-          total: expensesData
-            .filter(e => e.category === cat.name && e.paid_by === payer.id)
-            .reduce((sum, e) => sum + e.amount_cents, 0)
-        })) || []
-      ).filter(t => t.total > 0) || [];
+    const grandTotal = currentExpenses.reduce((sum, e) => sum + e.amount_cents, 0);
+    const previousTotal = previousExpenses.reduce((sum, e) => sum + e.amount_cents, 0);
 
-      setSummary({
-        totalsByPerson,
-        totalsByCategory,
-        grandTotal: expensesData.reduce((sum, e) => sum + e.amount_cents, 0)
-      });
-    }
+    setSummary({
+      totalsByPerson,
+      totalsByCategory,
+      grandTotal,
+    });
+
+    // Calculate trend
+    setTrend(calculateMonthChange(grandTotal, previousTotal));
+
+    // Calculate category breakdown
+    setCategoryBreakdown(calculateCategoryBreakdown(currentExpenses, categoriesData || []));
 
     setLoading(false);
   }
@@ -120,8 +127,10 @@ export function Dashboard({ user, profile }: DashboardProps) {
         />
 
         {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-charcoal-text"></div>
+          <div className="flex flex-col gap-8">
+            <Card variant="mint"><SummaryCardSkeleton /></Card>
+            <Card variant="blue"><ChartSkeleton /></Card>
+            <Card variant="peach"><CardSkeleton /></Card>
           </div>
         ) : (
           <div className="flex flex-col gap-8">
@@ -130,10 +139,11 @@ export function Dashboard({ user, profile }: DashboardProps) {
                 summary={summary}
                 payers={payers}
                 monthName={monthName}
+                trend={trend}
               />
             )}
-            <SpendingFlowChart />
-            <CategoryBreakdown />
+            <SpendingFlowChart expenses={expenses} month={currentMonth} />
+            <CategoryBreakdown breakdown={categoryBreakdown} />
             <LatestTransactions expenses={expenses} payers={payers} />
           </div>
         )}
