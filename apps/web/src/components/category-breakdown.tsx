@@ -2,8 +2,9 @@ import { Card } from "./ui";
 import { formatAmount } from "@expenses/shared";
 import type { CategoryBreakdownItem } from "@/lib/calculations/spending-calculations";
 
-// Map Tailwind bg classes to hex colors for SVG
+// Map Tailwind bg classes and short IDs to hex colors for SVG
 const colorMap: Record<string, string> = {
+  // Tailwind classes (fallback palette)
   "bg-accent-primary": "#7FB3D5",
   "bg-accent-success": "#8FC99C",
   "bg-accent-warning": "#F7DC6F",
@@ -11,6 +12,13 @@ const colorMap: Record<string, string> = {
   "bg-pastel-blue": "#D6EAF8",
   "bg-pastel-mint": "#DDF2D8",
   "bg-pastel-peach": "#FAE5D3",
+  // Short IDs (from category settings)
+  mint: "#DDF2D8",
+  blue: "#D6EAF8",
+  peach: "#FAE5D3",
+  lavender: "#E8DAEF",
+  yellow: "#F7DC6F",
+  grey: "#E5E7EB",
 };
 
 interface CategoryBreakdownProps {
@@ -43,7 +51,7 @@ export function CategoryBreakdown({ breakdown }: CategoryBreakdownProps) {
     .map((cat) => {
       const start = accumulated;
       accumulated += cat.percentage;
-      const hexColor = colorMap[cat.color] || cat.color;
+      const hexColor = colorMap[cat.color] || "#7FB3D5";
       return `${hexColor} ${start}% ${accumulated}%`;
     })
     .join(", ");
@@ -83,7 +91,7 @@ export function CategoryBreakdown({ breakdown }: CategoryBreakdownProps) {
             >
               <div
                 className="w-3 h-3 rounded-full shrink-0"
-                style={{ backgroundColor: colorMap[cat.color] || cat.color }}
+                style={{ backgroundColor: colorMap[cat.color] || "#7FB3D5" }}
               />
               <div className="flex flex-col w-full min-w-0">
                 <div className="flex justify-between text-sm mb-1 gap-2">
@@ -100,7 +108,7 @@ export function CategoryBreakdown({ breakdown }: CategoryBreakdownProps) {
                       className="h-full"
                       style={{
                         width: `${cat.percentage}%`,
-                        backgroundColor: colorMap[cat.color] || cat.color,
+                        backgroundColor: colorMap[cat.color] || "#7FB3D5",
                       }}
                     />
                   </div>

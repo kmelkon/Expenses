@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Card } from "./ui";
 import { formatAmount } from "@expenses/shared";
 
-// Map Tailwind bg classes to hex colors for SVG
+// Map Tailwind bg classes and short IDs to hex colors for SVG
 const colorMap: Record<string, string> = {
+  // Tailwind classes (fallback palette)
   "bg-accent-primary": "#7FB3D5",
   "bg-accent-success": "#8FC99C",
   "bg-accent-warning": "#F7DC6F",
@@ -13,6 +14,13 @@ const colorMap: Record<string, string> = {
   "bg-pastel-blue": "#D6EAF8",
   "bg-pastel-mint": "#DDF2D8",
   "bg-pastel-peach": "#FAE5D3",
+  // Short IDs (from category settings)
+  mint: "#DDF2D8",
+  blue: "#D6EAF8",
+  peach: "#FAE5D3",
+  lavender: "#E8DAEF",
+  yellow: "#F7DC6F",
+  grey: "#E5E7EB",
 };
 
 interface CategoryTrendsProps {
@@ -39,6 +47,11 @@ export function CategoryTrendsChart({ data }: CategoryTrendsProps) {
   const [visibleCategories, setVisibleCategories] = useState<Set<string>>(
     () => new Set(allCategories.slice(0, 4)) // Show top 4 by default
   );
+
+  // Reset visible categories when data changes (e.g., month range switch)
+  useEffect(() => {
+    setVisibleCategories(new Set(allCategories.slice(0, 4)));
+  }, [allCategories]);
 
   // Get max value for Y-axis scaling
   const maxValue = useMemo(() => {
@@ -76,7 +89,7 @@ export function CategoryTrendsChart({ data }: CategoryTrendsProps) {
       });
 
       const colorClass = data[0]?.categories.find((c) => c.name === categoryName)?.color || "bg-accent-primary";
-      const hexColor = colorMap[colorClass] || colorClass;
+      const hexColor = colorMap[colorClass] || "#7FB3D5";
 
       const d = points.map((p, i) => (i === 0 ? `M${p.x} ${p.y}` : `L${p.x} ${p.y}`)).join(" ");
 
@@ -121,7 +134,7 @@ export function CategoryTrendsChart({ data }: CategoryTrendsProps) {
       <div className="flex flex-wrap gap-2 mb-6">
         {allCategories.map((name) => {
           const colorClass = data[0]?.categories.find((c) => c.name === name)?.color || "bg-accent-primary";
-          const hexColor = colorMap[colorClass] || colorClass;
+          const hexColor = colorMap[colorClass] || "#7FB3D5";
           const isVisible = visibleCategories.has(name);
 
           return (
