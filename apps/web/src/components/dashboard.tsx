@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import type { ProfileRow, ExpenseRow, MonthSummary, CategoryRow, PayerRow } from "@expenses/shared";
-import { formatAmount, getCurrentMonth, formatMonthDisplay, getPreviousMonth, getNextMonth } from "@expenses/shared";
+import { getCurrentMonth } from "@expenses/shared";
 import { format } from "date-fns";
 import { AppHeader } from "./app-header";
 import { WelcomeSection } from "./welcome-section";
@@ -13,6 +13,7 @@ import { SpendingFlowChart } from "./spending-flow-chart";
 import { CategoryBreakdown } from "./category-breakdown";
 import { LatestTransactions } from "./latest-transactions";
 import { AddExpenseButton } from "./add-expense-button";
+import { BottomNav } from "./bottom-nav";
 import { Card, SummaryCardSkeleton, ChartSkeleton, CardSkeleton } from "./ui";
 import { getExpensesWithPreviousMonth } from "@/lib/queries/expense-queries";
 import {
@@ -39,11 +40,7 @@ export function Dashboard({ user, profile }: DashboardProps) {
 
   const supabase = createClient();
 
-  useEffect(() => {
-    loadData();
-  }, [currentMonth]);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     setLoading(true);
 
     // Fetch categories and payers
@@ -103,10 +100,11 @@ export function Dashboard({ user, profile }: DashboardProps) {
     setCategoryBreakdown(calculateCategoryBreakdown(currentExpenses, categoriesData || []));
 
     setLoading(false);
-  }
+  }, [supabase, profile.household_id, currentMonth]);
 
-  const handlePreviousMonth = () => setCurrentMonth(getPreviousMonth(currentMonth));
-  const handleNextMonth = () => setCurrentMonth(getNextMonth(currentMonth));
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   // Get month name for display
   const [year, month] = currentMonth.split("-").map(Number);
@@ -140,6 +138,8 @@ export function Dashboard({ user, profile }: DashboardProps) {
                 payers={payers}
                 monthName={monthName}
                 trend={trend}
+                currentMonth={currentMonth}
+                onMonthChange={setCurrentMonth}
               />
             )}
             <SpendingFlowChart expenses={expenses} month={currentMonth} />
@@ -155,14 +155,17 @@ export function Dashboard({ user, profile }: DashboardProps) {
           onAdded={loadData}
           forceOpen={showAddExpense}
           onClose={() => setShowAddExpense(false)}
+          hideButton
         />
       </main>
 
-      <footer className="text-center pb-8 opacity-50">
+      <footer className="text-center pb-8 opacity-50 hidden md:block">
         <p className="text-xs font-medium text-charcoal-text">
           {new Date().getFullYear()} OurNest
         </p>
       </footer>
+
+      <BottomNav activeTab="dashboard" />
     </div>
   );
 }

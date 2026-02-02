@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -61,22 +61,7 @@ export default function CategoriesPage() {
   const supabase = createClient();
   const router = useRouter();
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  // Close picker when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
-        setShowPicker(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -106,7 +91,22 @@ export default function CategoriesPage() {
 
     setCategories(categoriesData || []);
     setLoading(false);
-  }
+  }, [supabase, router]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Close picker when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
+        setShowPicker(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   async function handleAddCategory(e: React.FormEvent) {
     e.preventDefault();

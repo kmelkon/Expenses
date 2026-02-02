@@ -2,18 +2,21 @@ import { Card } from "./ui";
 import type { MonthSummary, PayerRow } from "@expenses/shared";
 import { formatSEKParts } from "@expenses/shared";
 import type { MonthChange } from "@/lib/calculations/spending-calculations";
+import { MonthPickerPopover } from "./month-picker-popover";
 
 interface SummaryCardProps {
   summary: MonthSummary;
   payers: PayerRow[];
   monthName: string;
   trend?: MonthChange;
+  currentMonth?: string;
+  onMonthChange?: (month: string) => void;
 }
 
 // Assign colors to payers based on index
 const payerColors = ["lavender", "warning", "mint", "blue"] as const;
 
-export function SummaryCard({ summary, payers, monthName, trend }: SummaryCardProps) {
+export function SummaryCard({ summary, payers, monthName, trend, currentMonth, onMonthChange }: SummaryCardProps) {
   const { kronor, ore } = formatSEKParts(summary.grandTotal);
 
   // Determine trend display
@@ -56,14 +59,36 @@ export function SummaryCard({ summary, payers, monthName, trend }: SummaryCardPr
         {/* Main total */}
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2 mb-2">
-            <span className="p-1.5 bg-white/40 rounded-full flex items-center justify-center">
-              <span className="material-symbols-outlined text-sm text-charcoal-text/70">
-                calendar_today
-              </span>
-            </span>
-            <span className="text-sm font-bold uppercase tracking-wider text-charcoal-text/60">
-              {monthName} Spending
-            </span>
+            {currentMonth && onMonthChange ? (
+              <MonthPickerPopover
+                currentMonth={currentMonth}
+                onSelectMonth={onMonthChange}
+                align="left"
+                trigger={
+                  <div className="flex items-center gap-2 p-1 -m-1">
+                    <span className="p-1.5 bg-white/40 rounded-full flex items-center justify-center group-hover:bg-white/60 transition-colors">
+                      <span className="material-symbols-outlined text-sm text-charcoal-text/70">
+                        calendar_today
+                      </span>
+                    </span>
+                    <span className="text-sm font-bold uppercase tracking-wider text-charcoal-text/60">
+                      {monthName} Spending
+                    </span>
+                  </div>
+                }
+              />
+            ) : (
+              <>
+                <span className="p-1.5 bg-white/40 rounded-full flex items-center justify-center">
+                  <span className="material-symbols-outlined text-sm text-charcoal-text/70">
+                    calendar_today
+                  </span>
+                </span>
+                <span className="text-sm font-bold uppercase tracking-wider text-charcoal-text/60">
+                  {monthName} Spending
+                </span>
+              </>
+            )}
           </div>
           <h2 className="text-5xl font-black text-charcoal-text tracking-tight">
             {kronor}

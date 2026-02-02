@@ -23,6 +23,7 @@ describe("SetupPage", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(useRouter).mockReturnValue({
       push: mockPush,
       refresh: mockRefresh,
@@ -31,6 +32,7 @@ describe("SetupPage", () => {
       data: { user: { user_metadata: { full_name: "Test User" } } },
     });
     mockSignOut.mockResolvedValue({ error: null });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.mocked(createClient).mockReturnValue({
       rpc: mockRpc,
       auth: {
@@ -153,6 +155,7 @@ describe("SetupPage", () => {
     });
 
     it("shows loading state while creating", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let resolveRpc: (value: any) => void;
       mockRpc.mockReturnValue(
         new Promise((resolve) => {
@@ -261,6 +264,7 @@ describe("SetupPage", () => {
     });
 
     it("shows loading state while joining", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let resolveRpc: (value: any) => void;
       mockRpc.mockReturnValue(
         new Promise((resolve) => {
