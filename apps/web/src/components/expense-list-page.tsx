@@ -20,6 +20,7 @@ import { MonthNavigator } from "./month-navigator";
 import { ExpenseList } from "./expense-list";
 import { TransactionSearch } from "./transaction-search";
 import { AddExpenseButton } from "./add-expense-button";
+import { BottomNav } from "./bottom-nav";
 
 interface ExpenseListPageProps {
   user: User;
@@ -119,7 +120,6 @@ export function ExpenseListPage({ user, profile }: ExpenseListPageProps) {
             payers={payers}
             householdId={profile.household_id!}
             onAdded={handleRefresh}
-            variant="inline"
           />
         </div>
 
@@ -146,6 +146,8 @@ export function ExpenseListPage({ user, profile }: ExpenseListPageProps) {
           />
         )}
       </main>
+
+      <BottomNav activeTab="expenses" />
     </div>
   );
 }

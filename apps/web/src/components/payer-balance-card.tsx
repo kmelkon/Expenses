@@ -2,6 +2,7 @@ import { Card } from "./ui";
 import { formatAmount } from "@expenses/shared";
 import type { PayerBalance } from "@/lib/calculations/spending-calculations";
 import { calculateSettlement } from "@/lib/calculations/spending-calculations";
+import { MonthPickerPopover } from "./month-picker-popover";
 
 // Payer avatar colors
 const avatarColors = [
@@ -14,9 +15,11 @@ const avatarColors = [
 interface PayerBalanceCardProps {
   balances: PayerBalance[];
   monthLabel: string;
+  currentMonth?: string;
+  onMonthChange?: (month: string) => void;
 }
 
-export function PayerBalanceCard({ balances, monthLabel }: PayerBalanceCardProps) {
+export function PayerBalanceCard({ balances, monthLabel, currentMonth, onMonthChange }: PayerBalanceCardProps) {
   const settlement = calculateSettlement(balances);
   const grandTotal = balances.reduce((sum, b) => sum + b.paid, 0);
 
@@ -38,9 +41,22 @@ export function PayerBalanceCard({ balances, monthLabel }: PayerBalanceCardProps
     <Card variant="blue" hover>
       <div className="flex items-center justify-between mb-8">
         <h3 className="text-xl font-bold text-charcoal-text">Household Split</h3>
-        <div className="px-3 py-1 bg-white/50 rounded-full text-xs font-bold text-charcoal-text/60">
-          {monthLabel}
-        </div>
+        {currentMonth && onMonthChange ? (
+          <MonthPickerPopover
+            currentMonth={currentMonth}
+            onSelectMonth={onMonthChange}
+            align="right"
+            trigger={
+              <div className="px-3 py-1 bg-white/50 hover:bg-white/70 rounded-full text-xs font-bold text-charcoal-text/60 transition-colors">
+                {monthLabel}
+              </div>
+            }
+          />
+        ) : (
+          <div className="px-3 py-1 bg-white/50 rounded-full text-xs font-bold text-charcoal-text/60">
+            {monthLabel}
+          </div>
+        )}
       </div>
 
       {/* Payer cards */}

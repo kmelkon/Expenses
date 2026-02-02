@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { CategoryRow, PayerRow } from "@expenses/shared";
 import { parseAmountInput, getTodayYYYYMMDD } from "@expenses/shared";
@@ -26,7 +26,7 @@ interface AddExpenseButtonProps {
   onAdded: () => void;
   forceOpen?: boolean;
   onClose?: () => void;
-  variant?: "fab" | "inline";
+  hideButton?: boolean;
 }
 
 export function AddExpenseButton({
@@ -36,19 +36,23 @@ export function AddExpenseButton({
   onAdded,
   forceOpen,
   onClose,
-  variant = "fab",
+  hideButton,
 }: AddExpenseButtonProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
 
-  // Sync with forceOpen prop
-  useEffect(() => {
-    if (forceOpen !== undefined) {
-      setIsOpen(forceOpen);
+  // Use forceOpen if provided, otherwise use internal state
+  const isOpen = forceOpen !== undefined ? forceOpen : internalOpen;
+
+  const handleOpen = () => {
+    if (forceOpen === undefined) {
+      setInternalOpen(true);
     }
-  }, [forceOpen]);
+  };
 
   const handleClose = () => {
-    setIsOpen(false);
+    if (forceOpen === undefined) {
+      setInternalOpen(false);
+    }
     setError(null);
     onClose?.();
   };
@@ -98,9 +102,8 @@ export function AddExpenseButton({
       setNote("");
       setDate(getTodayYYYYMMDD());
       setError(null);
-      setIsOpen(false);
+      handleClose();
       setLoading(false);
-      onClose?.();
       onAdded();
     } catch (err) {
       setError(
@@ -112,17 +115,9 @@ export function AddExpenseButton({
 
   return (
     <>
-      {variant === "fab" ? (
+      {!hideButton && (
         <button
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-charcoal-text text-cream-bg rounded-full shadow-lg shadow-charcoal-text/20 hover:bg-charcoal-text/80 transition-colors flex items-center justify-center"
-          aria-label="Add expense"
-        >
-          <span className="material-symbols-outlined text-2xl">add</span>
-        </button>
-      ) : (
-        <button
-          onClick={() => setIsOpen(true)}
+          onClick={handleOpen}
           className="group flex items-center gap-2 bg-charcoal-text text-cream-bg px-5 py-2.5 rounded-full hover:bg-charcoal-text/80 transition-all shadow-lg shadow-charcoal-text/20"
         >
           <span className="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-transform">

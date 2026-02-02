@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import type { ProfileRow, ExpenseRow, CategoryRow, PayerRow } from "@expenses/shared";
-import { getCurrentMonth, getPreviousMonth } from "@expenses/shared";
+import { getCurrentMonth, getPreviousMonth, formatMonthDisplay } from "@expenses/shared";
 import { format } from "date-fns";
 import { AppHeader } from "./app-header";
 import { Card, ChartSkeleton, CardSkeleton } from "./ui";
@@ -12,6 +12,7 @@ import { MonthRangeSelector, type RangeOption } from "./month-range-selector";
 import { MonthlyComparisonChart } from "./monthly-comparison-chart";
 import { CategoryTrendsChart } from "./category-trends-chart";
 import { PayerBalanceCard } from "./payer-balance-card";
+import { BottomNav } from "./bottom-nav";
 import { getExpensesForMonths } from "@/lib/queries/expense-queries";
 import {
   calculateMonthlyTotals,
@@ -30,6 +31,7 @@ export function ReportsPage({ user, profile }: ReportsPageProps) {
   const [expensesByMonth, setExpensesByMonth] = useState<Map<string, ExpenseRow[]>>(new Map());
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [payers, setPayers] = useState<PayerRow[]>([]);
+  const [balanceMonth, setBalanceMonth] = useState(getCurrentMonth());
 
   const supabase = createClient();
   const currentMonth = getCurrentMonth();
@@ -45,11 +47,7 @@ export function ReportsPage({ user, profile }: ReportsPageProps) {
     return result;
   }, [range, currentMonth]);
 
-  useEffect(() => {
-    loadData();
-  }, [months]);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     setLoading(true);
 
     // Fetch categories and payers
@@ -77,7 +75,11 @@ export function ReportsPage({ user, profile }: ReportsPageProps) {
 
     setExpensesByMonth(expensesMap);
     setLoading(false);
-  }
+  }, [supabase, profile.household_id, months]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   // Calculate data for charts
   const monthlyTotals = useMemo(
@@ -90,16 +92,16 @@ export function ReportsPage({ user, profile }: ReportsPageProps) {
     [expensesByMonth, categories]
   );
 
-  // Calculate payer balance for current month only
-  const currentMonthExpenses = expensesByMonth.get(currentMonth) || [];
-  const payerBalances = useMemo(
-    () => calculatePayerBalance(currentMonthExpenses, payers),
-    [currentMonthExpenses, payers]
-  );
+  // Calculate payer balance for selected balance month
+  const payerBalances = useMemo(() => {
+    const balanceMonthExpenses = expensesByMonth.get(balanceMonth) || [];
+    return calculatePayerBalance(balanceMonthExpenses, payers);
+  }, [expensesByMonth, balanceMonth, payers]);
 
-  // Get current month label
+  // Get month labels
   const [year, month] = currentMonth.split("-").map(Number);
   const currentMonthLabel = format(new Date(year, month - 1), "MMMM yyyy");
+  const balanceMonthLabel = formatMonthDisplay(balanceMonth);
 
   return (
     <div className="min-h-screen bg-cream-bg text-charcoal-text selection:bg-pastel-peach">
@@ -129,18 +131,22 @@ export function ReportsPage({ user, profile }: ReportsPageProps) {
             <MonthlyComparisonChart data={monthlyTotals} />
             <PayerBalanceCard
               balances={payerBalances}
-              monthLabel={currentMonthLabel}
+              monthLabel={balanceMonthLabel}
+              currentMonth={balanceMonth}
+              onMonthChange={setBalanceMonth}
             />
             <CategoryTrendsChart data={categoryTrends} />
           </div>
         )}
       </main>
 
-      <footer className="text-center pb-8 opacity-50">
+      <footer className="text-center pb-8 opacity-50 hidden md:block">
         <p className="text-xs font-medium text-charcoal-text">
           {new Date().getFullYear()} OurNest
         </p>
       </footer>
+
+      <BottomNav activeTab="reports" />
     </div>
   );
 }
