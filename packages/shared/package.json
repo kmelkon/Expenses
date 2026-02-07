@@ -8,7 +8,8 @@
     ".": "./src/index.ts",
     "./types": "./src/types.ts",
     "./utils/money": "./src/utils/money.ts",
-    "./utils/date": "./src/utils/date.ts"
+    "./utils/date": "./src/utils/date.ts",
+    "./validators": "./src/validators.ts"
   },
   "scripts": {
     "test": "vitest run",

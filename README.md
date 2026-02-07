@@ -245,6 +245,28 @@ Navigate to the **Settings** tab to customize categories and payers:
 - Recurring expenses
 - Budget tracking
 
+## Documentation
+
+- **[Contributing Guide](CONTRIBUTING.md)**: Development workflow, code style, and PR guidelines
+- **[Security Policy](SECURITY.md)**: Security best practices and vulnerability reporting
+- **[Architecture](ARCHITECTURE.md)**: System design, data layer, and key decisions
+- **[API Documentation](docs/API.md)**: Web app API reference and query functions
+- **[Roadmap](ROADMAP.md)**: Planned features and improvements
+
+## Contributing
+
+We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) for details on:
+
+- Setting up your development environment
+- Code style and conventions
+- Testing requirements
+- Pull request process
+- Security considerations
+
+## Security
+
+Found a security vulnerability? Please read our [Security Policy](SECURITY.md) for responsible disclosure guidelines.
+
 ## License
 
 Private project for personal use.
